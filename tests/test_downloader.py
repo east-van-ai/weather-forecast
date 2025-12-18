@@ -1,14 +1,14 @@
 import pytest
 from pathlib import Path
-from src.downloader import WeatherPDFDownloader
 from unittest.mock import patch, MagicMock
+from src.chart.downloader import WeatherPDFDownloader
 
 
 class DummyDL(WeatherPDFDownloader):
     """Extending a class and override methods for testing."""
 
-    def __init__(self, data_dir, contents):
-        super().__init__(data_dir, weather_pdf_url="dummy")
+    def __init__(self, data_path, contents):
+        super().__init__(data_path, weather_pdf_url="dummy")
         self.fake_contents = contents
         self.calls = 0
 
@@ -24,7 +24,7 @@ def test_case_A(tmp_path):
     # tmp_path is a pytest fixture providing a temporary directory
     dl = DummyDL(tmp_path, [b"PDF-A"])
 
-    changed, pdf_hash = dl.update()
+    changed, pdf_hash, pdf_path = dl.refresh_pdf()
 
     assert changed is True
     assert dl._exists(dl.current_pdf_path)
@@ -38,7 +38,7 @@ def test_case_B(tmp_path):
     current_pdf_path.write_bytes(b"OLD")
 
     dl = DummyDL(tmp_path, [b"NEW"])
-    changed, pdf_hash = dl.update()
+    changed, pdf_hash, pdf_path = dl.refresh_pdf()
 
     # After rename: last.pdf=OLD, current.pdf=NEW
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"OLD"
@@ -52,7 +52,7 @@ def test_case_C_no_change(tmp_path):
     last.write_bytes(b"SAME")
 
     dl = DummyDL(tmp_path, [b"SAME"])
-    changed, pdf_hash = dl.update()
+    changed, pdf_hash, pdf_path = dl.refresh_pdf()
 
     assert changed is False
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"SAME"
@@ -65,7 +65,7 @@ def test_case_C_change(tmp_path):
     last.write_bytes(b"OLD")
 
     dl = DummyDL(tmp_path, [b"NEW"])
-    changed, pdf_hash = dl.update()
+    changed, pdf_hash, pdf_path = dl.refresh_pdf()
 
     assert changed is True
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"OLD"
@@ -80,7 +80,7 @@ def test_case_D_no_change(tmp_path):
     current.write_bytes(b"CURRENT")
 
     dl = DummyDL(tmp_path, [b"CURRENT"])
-    changed, pdf_hash = dl.update()
+    changed, pdf_hash, pdf_path = dl.refresh_pdf()
 
     assert changed is False
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"CURRENT"
@@ -95,33 +95,8 @@ def test_case_D_change(tmp_path):
     current.write_bytes(b"CURRENT")
 
     dl = DummyDL(tmp_path, [b"NEWER"])
-    changed, pdf_hash = dl.update()
+    changed, pdf_hash, pdf_path = dl.refresh_pdf()
 
     assert changed is True
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"CURRENT"
     assert (tmp_path / WeatherPDFDownloader.CURRENT_PDF).read_bytes() == b"NEWER"
-
-
-def test_create_png(tmp_path):
-    # Arrange: create a downloader with temp directory
-    dl = WeatherPDFDownloader(tmp_path, weather_pdf_url="dummy.url")
-
-    # Create fake current.pdf so the path exists
-    dl.current_pdf_path.write_bytes(b"%PDF-1.4 fake")
-
-    # Mock: fake page with .save() method
-    fake_page = MagicMock()
-    fake_pages = [fake_page]
-
-    with patch(
-        "src.downloader.convert_from_path", return_value=fake_pages
-    ) as conv_mock:
-        # Act
-        dl.create_png()
-
-    # Assert convert_from_path was called correctly
-    conv_mock.assert_called_once_with(dl.current_pdf_path)
-
-    # Assert .save() called on first page
-    expected_png_path = tmp_path / dl.WEATHER_PNG
-    fake_page.save.assert_called_once_with(expected_png_path)

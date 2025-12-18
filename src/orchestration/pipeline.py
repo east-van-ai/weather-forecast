@@ -1,0 +1,134 @@
+from pathlib import Path
+from src.chart.downloader import WeatherPDFDownloader
+from src.chart.processors.image_tools import resize_png
+from src.chart.processors.pdf_tools import pdf_to_png
+from src.forecast.generator import WeatherVision
+from src.salesforce.weather import SFWeatherClient
+
+WEATHER_PDF_URL = "https://www.data.jma.go.jp/yoho/data/wxchart/quick/ASAS_COLOR.pdf"
+DATA_DIR = "./data"
+WEATHER_PNG = "weather.png"
+WEATHER_SMALL_PNG = "weather_small.png"
+
+
+class WeatherPipeline:
+    """Orchestrates the weather forecast workflow."""
+
+    def run(self):
+        chart = self._download_chart()
+
+        if not self._should_process(chart):
+            return
+
+        images = self._prepare_images(chart)
+        forecast = self._generate_forecast(images)
+        self._publish_salesforce(chart, images, forecast)
+
+    def _download_chart(self) -> dict:
+        """
+        Download the weather chart and return its status.
+
+        Returns:
+            dict: A dictionary containing 'updated' (bool), 'hash' (str), and 'path' (Path).
+        """
+        downloader = WeatherPDFDownloader(Path(DATA_DIR), WEATHER_PDF_URL)
+
+        updated, pdf_hash, pdf_path = downloader.refresh_pdf()
+
+        return {
+            "updated": updated,
+            "hash": pdf_hash,
+            "path": pdf_path,
+        }
+
+    def _should_process(self, chart: dict) -> bool:
+        """
+        Decide whether the pipeline should continue processing.
+
+        Args:
+            chart (dict): Output from _download_chart()
+
+        Returns:
+            bool: True if processing should continue
+        """
+        if not chart.get("updated", False):
+            return False
+
+        # future:
+        # if self.force:
+        #     return True
+        # if self.dryrun:
+        #     return False
+        # if not within_schedule_window():
+        #     return False
+
+        return True
+
+    def _prepare_images(self, chart: dict) -> dict:
+        """
+        Prepare PNG images from the downloaded PDF for further processing.
+
+        Args:
+            chart (dict): Output from _download_chart()
+        Returns:
+            dict: Paths to prepared images
+        """
+        # Convert to PNG for AI and Salesforce
+        regular_png_path = pdf_to_png(chart["path"], Path(DATA_DIR) / WEATHER_PNG)
+
+        # Create resized 300px PNG for Salesforce (lightweight)
+        small_png_path = resize_png(
+            regular_png_path, Path(DATA_DIR) / WEATHER_SMALL_PNG, width=300
+        )
+
+        images = {
+            "regular": regular_png_path,
+            "small": small_png_path,
+        }
+        return images
+
+    def _generate_forecast(self, images):
+        """
+        Generate AI-based weather forecast from the images.
+
+        Args:
+            images (dict): Prepared images from _prepare_images()
+        Returns:
+            dict: Generated forecast with 'title' and 'content'
+        """
+        wv = WeatherVision()
+        ai_forecast = wv.generate_forecast(
+            images["regular"], "Title and description\n<image>"
+        )
+
+        lines = ai_forecast.split("\n", 1)  # Split into at most 2 parts
+        title = lines[0]
+        content = lines[1] if len(lines) > 1 else ""
+
+        forecast = {
+            "title": title,
+            "content": content,
+        }
+        return forecast
+
+    def _publish_salesforce(self, chart: dict, images: dict, forecast: dict) -> None:
+        """
+        Publish the forecast and images to Salesforce.
+
+        Args:
+            images (dict): Prepared images from _prepare_images()
+            forecast (dict): Generated forecast from _generate_forecast()
+        """
+        sf = SFWeatherClient()
+        records = sf.find_or_create_report(chart["hash"])
+        record_id = records[0]["Id"]
+
+        # Currently not ensured
+        # cv_id = sf.ensure_preview_image(record_id, images["small"])
+
+        # if cv_id:
+        #     print("Uploaded new ContentVersion:", cv_id)
+        # else:
+        #     print("small.png already exists, skipping.")
+
+        sf.update_forecast(record_id, forecast["content"])

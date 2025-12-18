@@ -2,7 +2,7 @@ import builtins
 import pytest
 from unittest.mock import patch, MagicMock
 
-from src.salesforce_client import SalesforceClient
+from src.salesforce.base import SalesforceBaseClient
 
 
 FAKE_PRIVATE_KEY = b"-----BEGIN PRIVATE KEY-----\nFAKEKEY\n-----END PRIVATE KEY-----"
@@ -24,10 +24,10 @@ def setup_auth_patches():
         builtins, "open", return_value=MagicMock(read=lambda: FAKE_PRIVATE_KEY)
     )
 
-    jwt_patch = patch("src.salesforce_client.jwt.encode", return_value="FAKE_JWT")
+    jwt_patch = patch("src.salesforce.base.jwt.encode", return_value="FAKE_JWT")
 
-    post_patch = patch("src.salesforce_client.requests.post")
-    sf_patch = patch("src.salesforce_client.Salesforce")
+    post_patch = patch("src.salesforce.base.requests.post")
+    sf_patch = patch("src.salesforce.base.Salesforce")
 
     return open_patch, jwt_patch, post_patch, sf_patch
 
@@ -45,7 +45,7 @@ def test_salesforce_auth(mock_env):
         }
         post_mock.return_value.raise_for_status = lambda: None
 
-        client = SalesforceClient()
+        client = SalesforceBaseClient()
 
         sf_mock.assert_called_once_with(
             session_id=FAKE_ACCESS_TOKEN,
@@ -73,80 +73,11 @@ def test_salesforce_query(mock_env):
 
         sf_mock.return_value = fake_sf
 
-        client = SalesforceClient()
+        client = SalesforceBaseClient()
         result = client.query("SELECT Id FROM Account")
 
         assert result == [{"Id": "001"}]
         fake_sf.query.assert_called_once()
-
-
-def test_find_or_create_records_1(mock_env):
-    """Case 1: First query returns nothing (record missing)"""
-    open_p, jwt_p, post_p, sf_p = setup_auth_patches()
-
-    with open_p, jwt_p, post_p as post_mock, sf_p as sf_mock:
-        post_mock.return_value.json.return_value = {
-            "access_token": FAKE_ACCESS_TOKEN,
-            "instance_url": FAKE_INSTANCE_URL,
-        }
-        post_mock.return_value.raise_for_status = lambda: None
-
-        sf_mock.return_value = MagicMock()
-
-        client = SalesforceClient()
-
-        with patch.object(client, "query") as mock_query, patch.object(
-            client, "create"
-        ) as mock_create:
-
-            pdf_hash = "abc123"
-
-            mock_query.side_effect = [
-                [],  # first query: no record
-                [
-                    {"Id": "001", "PDF_Hash__c": pdf_hash}
-                ],  # second query: record created
-            ]
-
-            results = client.find_or_create_records(pdf_hash)
-
-            # verify creation happened
-            mock_create.assert_called_once_with(
-                "Weather_Report__c",
-                {"Name": "DEV Weather Report", "PDF_Hash__c": pdf_hash},
-            )
-
-            assert results == [{"Id": "001", "PDF_Hash__c": pdf_hash}]
-
-
-def test_find_or_create_records_2(mock_env):
-    """Case 2: Record already exists"""
-    open_p, jwt_p, post_p, sf_p = setup_auth_patches()
-
-    with open_p, jwt_p, post_p as post_mock, sf_p as sf_mock:
-        post_mock.return_value.json.return_value = {
-            "access_token": FAKE_ACCESS_TOKEN,
-            "instance_url": FAKE_INSTANCE_URL,
-        }
-        post_mock.return_value.raise_for_status = lambda: None
-
-        sf_mock.return_value = MagicMock()
-
-        client = SalesforceClient()
-
-        with patch.object(client, "query") as mock_query, patch.object(
-            client, "create"
-        ) as mock_create:
-
-            pdf_hash = "abc123"
-
-            mock_query.return_value = [{"Id": "existing", "PDF_Hash__c": pdf_hash}]
-
-            results = client.find_or_create_records(pdf_hash)
-
-            # No creation this time
-            mock_create.assert_not_called()
-            assert results == [{"Id": "existing", "PDF_Hash__c": pdf_hash}]
 
 
 # -------------------------------
@@ -181,7 +112,7 @@ def test_salesforce_crud(mock_env):
 
         sf_mock.return_value = fake_sf
 
-        client = SalesforceClient()
+        client = SalesforceBaseClient()
 
         assert client.create("Weather_Report__c", {"PDF_Hash__c": "aaa"}) == {
             "id": "NEW_ID"

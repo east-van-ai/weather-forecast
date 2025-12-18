@@ -1,4 +1,4 @@
-from src.cli import parse_args
+from src.cli.app import parse_args
 
 
 def test_cli_run_flag():
