@@ -11,15 +11,13 @@ class WeatherVision:
     MODEL_NAME = "llava-hf/llava-interleave-qwen-0.5b-hf"
 
     def __init__(self):
-        print("Loading WeatherVision model...")
-
         # Detect MPS
         if torch.backends.mps.is_available():
+            # Using MPS backend (Apple Silicon).
             self.device = torch.device("mps")
-            print("Using MPS backend (Apple Silicon).")
         else:
+            # MPS not available — using CPU.
             self.device = torch.device("cpu")
-            print("⚠️ MPS not available — using CPU.")
 
         # Load model + processor
         self.processor = AutoProcessor.from_pretrained(self.MODEL_NAME, use_fast=True)
@@ -32,6 +30,13 @@ class WeatherVision:
     ) -> str:
         """
         Generates weather analysis or description from a PNG.
+
+        Args:
+            file_path (str): Path to the PNG image file.
+            prompt (str): Text prompt to guide the generation.
+            max_tokens (int): Maximum number of tokens to generate.
+        Returns:
+            str: Generated text forecast.
         """
 
         # Load image
@@ -47,7 +52,11 @@ class WeatherVision:
 
         # Generate
         with torch.no_grad():
-            out = self.model.generate(**inputs, max_new_tokens=max_tokens)
+            out = self.model.generate(
+                **inputs,
+                pad_token_id=self.processor.tokenizer.eos_token_id,
+                max_new_tokens=max_tokens
+            )
 
         # Decode result
         text = self.processor.decode(out[0], skip_special_tokens=True)

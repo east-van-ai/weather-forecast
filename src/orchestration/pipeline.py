@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from src.chart.downloader import WeatherPDFDownloader
 from src.chart.processors.image_tools import resize_png
@@ -10,19 +11,38 @@ DATA_DIR = "./data"
 WEATHER_PNG = "weather.png"
 WEATHER_SMALL_PNG = "weather_small.png"
 
+logger = logging.getLogger(__name__)
+
 
 class WeatherPipeline:
     """Orchestrates the weather forecast workflow."""
 
-    def run(self):
+    def run(self) -> bool:
+        """
+        Run the weather forecast pipeline.
+
+        Returns:
+            bool: True if the pipeline ran successfully, False otherwise.
+        """
+        logger.info("Pipeline run started")
+
         chart = self._download_chart()
 
         if not self._should_process(chart):
-            return
+            logger.info("Pipeline execution skipped (should_process=False)")
+            return False
 
+        logger.info("Preparing images")
         images = self._prepare_images(chart)
+
+        logger.info("Generating forecast via AI")
         forecast = self._generate_forecast(images)
+
+        logger.info("Publishing results to Salesforce")
         self._publish_salesforce(chart, images, forecast)
+
+        logger.info("Pipeline run completed successfully")
+        return True
 
     def _download_chart(self) -> dict:
         """
