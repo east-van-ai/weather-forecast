@@ -143,12 +143,6 @@ class WeatherPipeline:
         records = sf.find_or_create_report(chart["hash"])
         record_id = records[0]["Id"]
 
-        # Currently not ensured
-        # cv_id = sf.ensure_preview_image(record_id, images["small"])
-
-        # if cv_id:
-        #     print("Uploaded new ContentVersion:", cv_id)
-        # else:
-        #     print("small.png already exists, skipping.")
+        sf.ensure_preview_image(record_id, images["small"])
 
         sf.update_forecast(record_id, forecast["content"])
