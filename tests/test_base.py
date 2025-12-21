@@ -93,7 +93,7 @@ class FakeSF:
         return self._obj
 
 
-def test_salesforce_crud(mock_env):
+def test_salesforce_base_client_crud(mock_env):
     open_p, jwt_p, post_p, sf_p = setup_auth_patches()
 
     fake_obj = MagicMock()
@@ -127,3 +127,45 @@ def test_salesforce_crud(mock_env):
 
         assert client.get("Weather_Report__c", "REC_ID") == {"Id": "REC_ID"}
         fake_obj.get.assert_called_once()
+
+
+def test_salesforce_base_client_upsert(mock_env):
+    open_p, jwt_p, post_p, sf_p = setup_auth_patches()
+
+    fake_obj = MagicMock()
+
+    # Salesforce upsert returns HTTP status code
+    fake_obj.upsert.return_value = "201"  # created
+
+    fake_sf = FakeSF(fake_obj)
+
+    with open_p, jwt_p, post_p as post_mock, sf_p as sf_mock:
+        post_mock.return_value.json.return_value = {
+            "access_token": FAKE_ACCESS_TOKEN,
+            "instance_url": FAKE_INSTANCE_URL,
+        }
+        post_mock.return_value.raise_for_status = lambda: None
+
+        sf_mock.return_value = fake_sf
+
+        client = SalesforceBaseClient()
+
+        # Mock query result after upsert
+        client.query = MagicMock(return_value=[{"Id": "UPSERT_ID"}])
+
+        result = client.upsert(
+            object_name="Weather_Report__c",
+            external_id_field="PDF_Hash__c",
+            external_id_value="aaa",
+            fields={"Name": "DEV Weather Report"},
+        )
+
+        fake_obj.upsert.assert_called_once_with(
+            "PDF_Hash__c/aaa",
+            {"Name": "DEV Weather Report"},
+        )
+
+        assert result == {
+            "created": True,
+            "record_id": "UPSERT_ID",
+        }

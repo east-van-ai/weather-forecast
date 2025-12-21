@@ -1,48 +1,50 @@
 import base64
 from os.path import basename, splitext
+from typing import NamedTuple
+
 from .base import SalesforceBaseClient
+
+
+class ReportUpsertResult(NamedTuple):
+    record_id: str
+    created: bool
 
 
 class SFWeatherClient(SalesforceBaseClient):
     """Client for managing weather data in Salesforce."""
 
-    def find_or_create_report(self, pdf_hash: str):
+    def upsert_report(self, pdf_hash: str, forecast_text: str) -> ReportUpsertResult:
         """
-        Finds Weather_Report__c records by PDF hash.
-        If none found, creates a new record.
+        Upserts Weather_Report__c by PDF hash.
 
         Args:
             pdf_hash: The hash of the PDF to search for.
+            forecast_text: The forecast text to set in the record.
 
         Returns:
-            A list of matching records.
+            ReportUpsertResult: record ID and whether it was created.
         """
-
         if not pdf_hash:
-            return []
+            raise ValueError("pdf_hash must not be empty")
 
-        # Escape single quotes for SOQL safety
         escaped_hash = pdf_hash.replace("'", "\\'")
 
-        query = (
-            "SELECT Id, Name, PDF_Hash__c, Forecast__c, Chart_Image_Id__c "
-            f"FROM Weather_Report__c WHERE PDF_Hash__c = '{escaped_hash}' LIMIT 1"
+        # Using External ID (PDF_Hash__c) to upsert
+        # Salesforce returns the ID and created status
+        result = self.upsert(
+            "Weather_Report__c",
+            external_id_field="PDF_Hash__c",
+            external_id_value=pdf_hash,
+            fields={
+                "Name": "DEV Weather Report",
+                "Forecast__c": forecast_text,
+            },
         )
 
-        records = self.query(query)
-
-        if not records:
-            self.create(
-                "Weather_Report__c",
-                {
-                    "Name": "DEV Weather Report",
-                    "PDF_Hash__c": pdf_hash,
-                },
-            )
-            # Re-query to return the new record
-            records = self.query(query)
-
-        return records
+        return ReportUpsertResult(
+            record_id=result["record_id"],
+            created=result["created"],
+        )
 
     def ensure_preview_image(self, record_id: str, file_path: str) -> str | None:
         """
@@ -103,18 +105,3 @@ class SFWeatherClient(SalesforceBaseClient):
         # Create ContentVersion
         new_version_id = self.sf.ContentVersion.create(body)["id"]
         return new_version_id
-
-    def update_forecast(self, record_id: str, forecast_text: str):
-        """
-        Updates the Forecast__c field of the given Weather_Report__c record.
-
-        Args:
-            record_id: The Id of the Weather_Report__c record.
-            forecast_text: The forecast text to set.
-
-        Returns:
-            True if update succeeded, else False.
-        """
-
-        fields = {"Forecast__c": forecast_text}
-        return self.update("Weather_Report__c", record_id, fields)

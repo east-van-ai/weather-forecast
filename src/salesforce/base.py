@@ -98,3 +98,30 @@ class SalesforceBaseClient:
     def get(self, object_name: str, record_id: str):
         """Fetch a single record."""
         return self.sf.__getattr__(object_name).get(record_id)
+
+    def upsert(
+        self,
+        object_name: str,
+        external_id_field: str,
+        external_id_value: str,
+        fields: dict,
+    ):
+        """Upsert a Salesforce record using an external ID."""
+        result = self.sf.__getattr__(object_name).upsert(
+            f"{external_id_field}/{external_id_value}", fields
+        )
+
+        created = str(result) == "201"  # HTTP 201 Created / 200 OK (Update)
+
+        soql = (
+            f"SELECT Id FROM {object_name} "
+            f"WHERE {external_id_field} = '{external_id_value}'"
+        )
+        records = self.query(soql)
+
+        record_id = records[0]["Id"] if records else None
+
+        return {
+            "created": created,
+            "record_id": record_id,
+        }

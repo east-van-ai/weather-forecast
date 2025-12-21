@@ -75,7 +75,7 @@ class WeatherPDFDownloader:
 
         if last_hash == current_hash:
             self._delete(self.current_pdf_path)
-            return False, current_hash, None  # no change
+            return False, last_hash, self.last_pdf_path  # no change
 
         return True, current_hash, self.current_pdf_path  # changed
 

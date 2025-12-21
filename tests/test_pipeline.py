@@ -157,16 +157,25 @@ def test_publish_salesforce(mocker):
 
     # Arrange
     fake_sf = mocker.patch(
-        "src.orchestration.pipeline.SFWeatherClient", autospec=True
+        "src.orchestration.pipeline.SFWeatherClient",
+        autospec=True,
     ).return_value
+
+    fake_report = MagicMock()
+    fake_report.record_id = "REPORT123"
+    fake_sf.upsert_report.return_value = fake_report
 
     chart = {"hash": "abc123"}
     images = {"small": Path("/fake/small.png")}
     forecast = {"content": "Sunny"}
 
     # Act
-    pipeline._publish_salesforce(chart, images, forecast)
+    result = pipeline._publish_salesforce(chart, images, forecast)
 
     # Assert
-    fake_sf.find_or_create_report.assert_called_once_with("abc123")
-    fake_sf.update_forecast.assert_called_once()
+    fake_sf.upsert_report.assert_called_once_with("abc123", "Sunny")
+    fake_sf.ensure_preview_image.assert_called_once_with(
+        "REPORT123",
+        images["small"],
+    )
+    assert result is fake_report

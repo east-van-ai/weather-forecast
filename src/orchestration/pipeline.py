@@ -4,7 +4,7 @@ from src.chart.downloader import WeatherPDFDownloader
 from src.chart.processors.image_tools import resize_png
 from src.chart.processors.pdf_tools import pdf_to_png
 from src.forecast.generator import WeatherVision
-from src.salesforce.weather import SFWeatherClient
+from src.salesforce.weather import ReportUpsertResult, SFWeatherClient
 
 WEATHER_PDF_URL = "https://www.data.jma.go.jp/yoho/data/wxchart/quick/ASAS_COLOR.pdf"
 DATA_DIR = "./data"
@@ -15,7 +15,27 @@ logger = logging.getLogger(__name__)
 
 
 class WeatherPipeline:
-    """Orchestrates the weather forecast workflow."""
+    """
+    Orchestrates the weather forecast workflow.
+
+    The pipeline supports a `force` mode that controls skip behavior
+    based on local file state and idempotency guards.
+
+    force (bool):
+        When True, forces the pipeline to run regardless of local file
+        existence or cache conditions. Salesforce records are created
+        or updated while idempotency guards still prevent duplicates.
+
+        When False, the pipeline respects local file state and skip
+        conditions to avoid unnecessary processing.
+
+    Intended for controlled re-runs, recovery scenarios, and MVP testing.
+    Use with caution.
+    """
+
+    def __init__(self, force: bool = False):
+        """Initialize the pipeline execution mode."""
+        self.force = force
 
     def run(self) -> bool:
         """
@@ -28,7 +48,7 @@ class WeatherPipeline:
 
         chart = self._download_chart()
 
-        if not self._should_process(chart):
+        if not self.force and not self._should_process(chart):
             logger.info("Pipeline execution skipped (should_process=False)")
             return False
 
@@ -39,7 +59,13 @@ class WeatherPipeline:
         forecast = self._generate_forecast(images)
 
         logger.info("Publishing results to Salesforce")
-        self._publish_salesforce(chart, images, forecast)
+        record = self._publish_salesforce(chart, images, forecast)
+
+        logger.info(
+            "Salesforce publish completed: record_id=%s created=%s",
+            record.record_id,
+            record.created,
+        )
 
         logger.info("Pipeline run completed successfully")
         return True
@@ -131,18 +157,21 @@ class WeatherPipeline:
         }
         return forecast
 
-    def _publish_salesforce(self, chart: dict, images: dict, forecast: dict) -> None:
+    def _publish_salesforce(
+        self, chart: dict, images: dict, forecast: dict
+    ) -> ReportUpsertResult:
         """
         Publish the forecast and images to Salesforce.
 
         Args:
             images (dict): Prepared images from _prepare_images()
             forecast (dict): Generated forecast from _generate_forecast()
+        Returns:
+            str: Salesforce record ID
         """
         sf = SFWeatherClient()
-        records = sf.find_or_create_report(chart["hash"])
-        record_id = records[0]["Id"]
+        report = sf.upsert_report(chart["hash"], forecast["content"])
 
-        sf.ensure_preview_image(record_id, images["small"])
+        sf.ensure_preview_image(report.record_id, images["small"])
 
-        sf.update_forecast(record_id, forecast["content"])
+        return report

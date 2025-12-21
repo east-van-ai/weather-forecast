@@ -31,13 +31,10 @@ def main():
         logger.error("Missing --run flag; aborting execution")
         raise SystemExit("Error: Missing --run. This flag is required.")
 
-    if args.force:
-        logger.info("--force enabled (logic not yet implemented)")
-
     if args.dryrun:
         logger.info("--dryrun enabled (logic not yet implemented)")
 
-    pipeline = WeatherPipeline()
+    pipeline = WeatherPipeline(force=args.force)
 
     try:
         result = pipeline.run()
