@@ -37,16 +37,33 @@ The script runs end-to-end and performs all major tasks:
 - Gets a forecast summary from LLaVA
 - Pushes the results into Salesforce
 
-This marks the initial versioning point (`v0.1.0`).
+This marked the initial versioning point (`v0.1.0`).
+
+---
+
+## 📦 Delivery & Deployment (v0.4)
+
+This project currently uses a **manual Continuous Delivery** model.
+
+### Continuous Delivery
+
+- Deployment is initiated by a human operator
+- Python and Salesforce deployments are independent
+- Deployment targets an explicit Git tag (e.g. v0.4.0)
+- Environment setup (venv, Salesforce auth, secrets) is assumed to be complete before execution
+- CI tooling and automated validation are out of scope for v0.4 by design
+
+Standardized deployment scripts are provided to ensure repeatability and reduce operator error.
+
+### Continuous Integration
+
+Automated CI (tests, merge validation, pipeline orchestration) is **intentionally deferred**.
+This will be revisited in a future milestone once delivery practices are stabilized.
 
 ---
 
 ## 🚀 Next Steps
 
-- Refactor: move PDF/PNG logic into dedicated classes
 - Add pipeline orchestrator for clearer flow
-- Expand tests for parent/child class structure
-- Improve CLI experience
-- Track tasks using GitHub Issues and (new) GitHub Project board
 
 ---

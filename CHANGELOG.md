@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the versioning uses [Semantic Versioning](https://semver.org/).
 
+## [v0.4.0] - 2025-12-31
+
+### Added
+
+- Manual Continuous Delivery foundations
+- Standardized deployment scripts for Python and Salesforce
+- Clear separation of deployment responsibilities per system
+- Documentation of delivery assumptions and boundaries
+
+### Changed
+
+- Deployment model formalized around tagged releases
+- Cron execution clarified via script naming
+
+### Deferred
+
+- Continuous Integration (CI) automation
+
 ---
 
 ## [v0.3.0] - 2025-12-24
