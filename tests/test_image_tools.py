@@ -1,8 +1,12 @@
-# tests/test_image_tools.py
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from src.chart.processors.image_tools import resize_png
+from src.weather_forecast.chart.processors.image_tools import resize_png
 
 
 def test_resize_png(tmp_path):
@@ -18,9 +22,13 @@ def test_resize_png(tmp_path):
     mock_img.resize = MagicMock(return_value=mock_img)
     mock_img.save = MagicMock()
 
-    with patch(
-        "src.chart.processors.image_tools.Image.open", return_value=mock_img
-    ) as mock_open, patch("src.chart.processors.image_tools.Image.LANCZOS", 99):
+    with (
+        patch(
+            "src.weather_forecast.chart.processors.image_tools.Image.open",
+            return_value=mock_img,
+        ) as mock_open,
+        patch("src.weather_forecast.chart.processors.image_tools.Image.LANCZOS", 99),
+    ):
         output = resize_png(src, dst, width=300)
 
     # Assertions

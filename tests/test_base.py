@@ -1,51 +1,56 @@
-import builtins
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 import pytest
 from unittest.mock import patch, MagicMock
 
-from src.salesforce.base import SalesforceBaseClient
-
+from src.weather_forecast.salesforce.base import SalesforceBaseClient
 
 FAKE_PRIVATE_KEY = b"-----BEGIN PRIVATE KEY-----\nFAKEKEY\n-----END PRIVATE KEY-----"
 FAKE_ACCESS_TOKEN = "XYZ123456789"
 FAKE_INSTANCE_URL = "https://example.salesforce.com"
 
-
-@pytest.fixture
-def mock_env(monkeypatch):
-    monkeypatch.setenv("SF_CLIENT_ID", "TEST_CLIENT_ID")
-    monkeypatch.setenv("SF_USERNAME", "test@example.com")
-    monkeypatch.setenv("SF_AUDIENCE", "https://login.salesforce.com")
-    monkeypatch.setenv("SF_PRIVATE_KEY_PATH", "/fake/key.pem")
+FAKE_CONFIG = {
+    "client_id": "TEST_CLIENT_ID",
+    "username": "test@example.com",
+    "audience": "https://login.salesforce.com",
+    "private_key": FAKE_PRIVATE_KEY,
+}
 
 
 def setup_auth_patches():
     """Return un-started patches so each test activates them cleanly."""
-    open_patch = patch.object(
-        builtins, "open", return_value=MagicMock(read=lambda: FAKE_PRIVATE_KEY)
+    jwt_patch = patch(
+        "src.weather_forecast.salesforce.base.jwt.encode", return_value="FAKE_JWT"
     )
 
-    jwt_patch = patch("src.salesforce.base.jwt.encode", return_value="FAKE_JWT")
+    post_patch = patch("src.weather_forecast.salesforce.base.requests.post")
+    sf_patch = patch("src.weather_forecast.salesforce.base.Salesforce")
 
-    post_patch = patch("src.salesforce.base.requests.post")
-    sf_patch = patch("src.salesforce.base.Salesforce")
+    return jwt_patch, post_patch, sf_patch
 
-    return open_patch, jwt_patch, post_patch, sf_patch
+
+def make_post_mock(post_mock):
+    """Configure a post mock with standard fake token response."""
+    post_mock.return_value.json.return_value = {
+        "access_token": FAKE_ACCESS_TOKEN,
+        "instance_url": FAKE_INSTANCE_URL,
+    }
+    post_mock.return_value.raise_for_status = lambda: None
 
 
 # -------------------------------
 # Test: authentication
 # -------------------------------
-def test_salesforce_auth(mock_env):
-    open_p, jwt_p, post_p, sf_p = setup_auth_patches()
+def test_salesforce_auth():
+    jwt_p, post_p, sf_p = setup_auth_patches()
 
-    with open_p, jwt_p, post_p as post_mock, sf_p as sf_mock:
-        post_mock.return_value.json.return_value = {
-            "access_token": FAKE_ACCESS_TOKEN,
-            "instance_url": FAKE_INSTANCE_URL,
-        }
-        post_mock.return_value.raise_for_status = lambda: None
+    with jwt_p, post_p as post_mock, sf_p as sf_mock:
+        make_post_mock(post_mock)
 
-        client = SalesforceBaseClient()
+        client = SalesforceBaseClient(config=FAKE_CONFIG)
 
         sf_mock.assert_called_once_with(
             session_id=FAKE_ACCESS_TOKEN,
@@ -57,23 +62,17 @@ def test_salesforce_auth(mock_env):
 # -------------------------------
 # Test: query
 # -------------------------------
-def test_salesforce_query(mock_env):
-    open_p, jwt_p, post_p, sf_p = setup_auth_patches()
+def test_salesforce_query():
+    jwt_p, post_p, sf_p = setup_auth_patches()
 
-    # Fake Salesforce instance
     fake_sf = MagicMock()
     fake_sf.query.return_value = {"records": [{"Id": "001"}]}
 
-    with open_p, jwt_p, post_p as post_mock, sf_p as sf_mock:
-        post_mock.return_value.json.return_value = {
-            "access_token": FAKE_ACCESS_TOKEN,
-            "instance_url": FAKE_INSTANCE_URL,
-        }
-        post_mock.return_value.raise_for_status = lambda: None
-
+    with jwt_p, post_p as post_mock, sf_p as sf_mock:
+        make_post_mock(post_mock)
         sf_mock.return_value = fake_sf
 
-        client = SalesforceBaseClient()
+        client = SalesforceBaseClient(config=FAKE_CONFIG)
         result = client.query("SELECT Id FROM Account")
 
         assert result == [{"Id": "001"}]
@@ -93,8 +92,8 @@ class FakeSF:
         return self._obj
 
 
-def test_salesforce_base_client_crud(mock_env):
-    open_p, jwt_p, post_p, sf_p = setup_auth_patches()
+def test_salesforce_base_client_crud():
+    jwt_p, post_p, sf_p = setup_auth_patches()
 
     fake_obj = MagicMock()
     fake_obj.create.return_value = {"id": "NEW_ID"}
@@ -103,16 +102,11 @@ def test_salesforce_base_client_crud(mock_env):
 
     fake_sf = FakeSF(fake_obj)
 
-    with open_p, jwt_p, post_p as post_mock, sf_p as sf_mock:
-        post_mock.return_value.json.return_value = {
-            "access_token": FAKE_ACCESS_TOKEN,
-            "instance_url": FAKE_INSTANCE_URL,
-        }
-        post_mock.return_value.raise_for_status = lambda: None
-
+    with jwt_p, post_p as post_mock, sf_p as sf_mock:
+        make_post_mock(post_mock)
         sf_mock.return_value = fake_sf
 
-        client = SalesforceBaseClient()
+        client = SalesforceBaseClient(config=FAKE_CONFIG)
 
         assert client.create("Weather_Report__c", {"PDF_Hash__c": "aaa"}) == {
             "id": "NEW_ID"
@@ -129,28 +123,20 @@ def test_salesforce_base_client_crud(mock_env):
         fake_obj.get.assert_called_once()
 
 
-def test_salesforce_base_client_upsert(mock_env):
-    open_p, jwt_p, post_p, sf_p = setup_auth_patches()
+def test_salesforce_base_client_upsert():
+    jwt_p, post_p, sf_p = setup_auth_patches()
 
     fake_obj = MagicMock()
-
-    # Salesforce upsert returns HTTP status code
     fake_obj.upsert.return_value = "201"  # created
 
     fake_sf = FakeSF(fake_obj)
 
-    with open_p, jwt_p, post_p as post_mock, sf_p as sf_mock:
-        post_mock.return_value.json.return_value = {
-            "access_token": FAKE_ACCESS_TOKEN,
-            "instance_url": FAKE_INSTANCE_URL,
-        }
-        post_mock.return_value.raise_for_status = lambda: None
-
+    with jwt_p, post_p as post_mock, sf_p as sf_mock:
+        make_post_mock(post_mock)
         sf_mock.return_value = fake_sf
 
-        client = SalesforceBaseClient()
+        client = SalesforceBaseClient(config=FAKE_CONFIG)
 
-        # Mock query result after upsert
         client.query = MagicMock(return_value=[{"Id": "UPSERT_ID"}])
 
         result = client.upsert(

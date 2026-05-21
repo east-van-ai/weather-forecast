@@ -1,3 +1,8 @@
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 from transformers import AutoProcessor, AutoModelForImageTextToText
 from PIL import Image
 import torch
@@ -55,7 +60,7 @@ class WeatherVision:
             out = self.model.generate(
                 **inputs,
                 pad_token_id=self.processor.tokenizer.eos_token_id,
-                max_new_tokens=max_tokens
+                max_new_tokens=max_tokens,
             )
 
         # Decode result

@@ -1,10 +1,15 @@
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 import logging
 from pathlib import Path
-from src.chart.downloader import WeatherPDFDownloader
-from src.chart.processors.image_tools import resize_png
-from src.chart.processors.pdf_tools import pdf_to_png
-from src.forecast.generator import WeatherVision
-from src.salesforce.weather import ReportUpsertResult, SFWeatherClient
+from src.weather_forecast.chart.downloader import WeatherPDFDownloader
+from src.weather_forecast.chart.processors.image_tools import resize_png
+from src.weather_forecast.chart.processors.pdf_tools import pdf_to_png
+from src.weather_forecast.forecast.generator import WeatherVision
+from src.weather_forecast.salesforce.weather import ReportUpsertResult, SFWeatherClient
 
 WEATHER_PDF_URL = "https://www.data.jma.go.jp/yoho/data/wxchart/quick/ASAS_COLOR.pdf"
 DATA_DIR = "./data"
@@ -29,13 +34,21 @@ class WeatherPipeline:
         When False, the pipeline respects local file state and skip
         conditions to avoid unnecessary processing.
 
+    config (dict)
+        Contains Salesforce Credentials
+        - client_id
+        - username
+        - audience
+        - private_key
+
     Intended for controlled re-runs, recovery scenarios, and MVP testing.
     Use with caution.
     """
 
-    def __init__(self, force: bool = False):
+    def __init__(self, force: bool = False, config: dict = {}):
         """Initialize the pipeline execution mode."""
         self.force = force
+        self.config = config
 
     def run(self) -> bool:
         """
@@ -169,7 +182,7 @@ class WeatherPipeline:
         Returns:
             str: Salesforce record ID
         """
-        sf = SFWeatherClient()
+        sf = SFWeatherClient(self.config)
         report = sf.upsert_report(chart["hash"], forecast["content"])
 
         sf.ensure_preview_image(report.record_id, images["small"])

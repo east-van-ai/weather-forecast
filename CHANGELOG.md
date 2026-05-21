@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the versioning uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+## [v0.7.0] - 2026-05-21
+
+### Changed
+
+- Dropped dotenv dependency: all secrets are now read from environment variables
+- README updated to reflect current model and configuration approach
+- Removed .env.example (no longer applicable)
+- Added headers in source code files
+
 ## [v0.6.0] - 2026-03-29
 
 ### Changed

@@ -1,6 +1,11 @@
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 from pathlib import Path
 from unittest.mock import MagicMock
-from src.orchestration.pipeline import WeatherPipeline
+from src.weather_forecast.orchestration.pipeline import WeatherPipeline
 
 
 def test_run_happy_path(mocker):
@@ -69,7 +74,7 @@ def test_download_chart(monkeypatch):
         return True, "hash123", "/tmp/test.pdf"
 
     monkeypatch.setattr(
-        "src.chart.downloader.WeatherPDFDownloader.refresh_pdf",
+        "src.weather_forecast.chart.downloader.WeatherPDFDownloader.refresh_pdf",
         fake_refresh,
     )
 
@@ -99,11 +104,11 @@ def test_prepare_images(mocker):
 
     # Arrange
     mock_pdf_to_png = mocker.patch(
-        "src.orchestration.pipeline.pdf_to_png",
+        "src.weather_forecast.orchestration.pipeline.pdf_to_png",
         return_value=Path("/fake/weather.png"),
     )
     mock_resize_png = mocker.patch(
-        "src.orchestration.pipeline.resize_png",
+        "src.weather_forecast.orchestration.pipeline.resize_png",
         return_value=Path("/fake/weather_small.png"),
     )
 
@@ -140,7 +145,7 @@ def test_generate_forecast(mocker):
     }
 
     mock_weather_vision = mocker.patch(
-        "src.orchestration.pipeline.WeatherVision", autospec=True
+        "src.weather_forecast.orchestration.pipeline.WeatherVision", autospec=True
     )
     mock_weather_vision.return_value.generate_forecast.return_value = fake_forecast
 
@@ -157,7 +162,7 @@ def test_publish_salesforce(mocker):
 
     # Arrange
     fake_sf = mocker.patch(
-        "src.orchestration.pipeline.SFWeatherClient",
+        "src.weather_forecast.orchestration.pipeline.SFWeatherClient",
         autospec=True,
     ).return_value
 

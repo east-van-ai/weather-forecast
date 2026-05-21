@@ -1,7 +1,12 @@
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from src.chart.downloader import WeatherPDFDownloader
+from src.weather_forecast.chart.downloader import WeatherPDFDownloader
 
 
 class DummyDL(WeatherPDFDownloader):

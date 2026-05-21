@@ -1,8 +1,12 @@
-# tests/test_pdf_tools.py
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from src.chart.processors.pdf_tools import pdf_to_png
+from src.weather_forecast.chart.processors.pdf_tools import pdf_to_png
 
 
 def test_pdf_to_png(tmp_path):
@@ -18,7 +22,8 @@ def test_pdf_to_png(tmp_path):
     mock_image.save = MagicMock()
 
     with patch(
-        "src.chart.processors.pdf_tools.convert_from_path", return_value=[mock_image]
+        "src.weather_forecast.chart.processors.pdf_tools.convert_from_path",
+        return_value=[mock_image],
     ) as mock_convert:
         output = pdf_to_png(pdf_path, png_path)
 

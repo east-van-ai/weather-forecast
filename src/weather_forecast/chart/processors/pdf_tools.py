@@ -3,10 +3,12 @@
 # East Van AI -- AI for the rest of us!
 # https://github.com/east-van-ai
 # ========================================================================
-from src.weather_forecast.cli.app import parse_args
+from pathlib import Path
+from pdf2image import convert_from_path
 
 
-def test_cli_run_flag():
-    """Test that the --run flag is parsed correctly."""
-    args = parse_args(["--run"])
-    assert args.run is True
+def pdf_to_png(pdf_path: Path, output_path: Path):
+    """Convert the first page of a PDF to a PNG image."""
+    pages = convert_from_path(pdf_path)
+    pages[0].save(output_path)
+    return output_path

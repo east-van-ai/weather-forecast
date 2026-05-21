@@ -1,3 +1,8 @@
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 from pathlib import Path
 import hashlib
 import urllib.request  # or requests

@@ -1,3 +1,8 @@
+# =======================================================================
+# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
+# East Van AI -- AI for the rest of us!
+# https://github.com/east-van-ai
+# ========================================================================
 """
 Salesforce OAuth2 (JWT Bearer) Login — No Browser, No Redirect
 
@@ -13,24 +18,16 @@ import time
 import jwt
 import requests
 from simple_salesforce import Salesforce
-from dotenv import load_dotenv
-
-load_dotenv()  # Load environment variables from .env file
 
 
 class SalesforceBaseClient:
     """Base Salesforce client using JWT Bearer OAuth2 flow."""
 
-    def __init__(self):
-        self.client_id = os.getenv("SF_CLIENT_ID")
-        self.username = os.getenv("SF_USERNAME")
-        self.audience = os.getenv("SF_AUDIENCE", "https://login.salesforce.com")
-        private_key_path = os.getenv("SF_PRIVATE_KEY_PATH")
-
-        # TODO: validate env vars
-
-        with open(private_key_path, "rb") as f:
-            self.private_key = f.read()
+    def __init__(self, config: dict = {}):
+        self.client_id = config["client_id"]
+        self.username = config["username"]
+        self.audience = config["audience"]
+        self.private_key = config["private_key"]
 
         self.sf = None
         self._authenticate()
