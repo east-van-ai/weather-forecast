@@ -1,0 +1,7 @@
+torch
+transformers
+pillow
+pdf2image
+requests
+simple-salesforce
+pyjwt
