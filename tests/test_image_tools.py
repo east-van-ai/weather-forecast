@@ -6,7 +6,7 @@
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from src.weather_forecast.chart.processors.image_tools import resize_png
+from weather_forecast.chart.processors.image_tools import resize_png
 
 
 def test_resize_png(tmp_path):
@@ -24,10 +24,10 @@ def test_resize_png(tmp_path):
 
     with (
         patch(
-            "src.weather_forecast.chart.processors.image_tools.Image.open",
+            "weather_forecast.chart.processors.image_tools.Image.open",
             return_value=mock_img,
         ) as mock_open,
-        patch("src.weather_forecast.chart.processors.image_tools.Image.LANCZOS", 99),
+        patch("weather_forecast.chart.processors.image_tools.Image.LANCZOS", 99),
     ):
         output = resize_png(src, dst, width=300)
 

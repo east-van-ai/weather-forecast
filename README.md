@@ -4,6 +4,19 @@ Pulls a Japan Meteorological Agency (JMA) surface analysis PDF, runs it through
 a local vision model on Apple Silicon, and stores the result in Salesforce.
 No cloud AI. No GPU rental. No subscriptions. Just your Mac doing the work.
 
+## Table of Contents
+
+- L1: [weather-forecast](#weather-forecast)
+  - L7: [Table of Contents](#table-of-contents)
+  - L20: [What it does](#what-it-does)
+  - L30: [Requirements](#requirements)
+  - L43: [Configuration](#configuration)
+  - L62: [Installing](#installing)
+  - L80: [Running](#running)
+  - L95: [Project structure](#project-structure)
+  - L112: [Running tests](#running-tests)
+  - L118: [License](#license)
+
 ## What it does
 
 1. Downloads the latest JMA surface analysis PDF
@@ -39,18 +52,53 @@ SF_AUDIENCE
 SF_SERVER_KEY
 ```
 
+Optional:
+
+```text
+WF_VISION_MODEL   # HuggingFace model id for the vision model. Defaults to
+                  # llava-hf/llava-interleave-qwen-0.5b-hf if not set.
+```
+
+## Installing
+
+```bash
+git clone https://github.com/east-van-ai/weather-forecast.git
+
+cd weather-forecast
+```
+
+Then pick one, depending on how you plan to use it:
+
+```bash
+# For development (editable install into your venv)
+pip install -e .
+
+# Or, for regular use as a standalone command (isolated environment)
+pipx install .
+```
+
 ## Running
 
 ```bash
-python -m src.main --run
+weather-forecast --run
+```
+
+If you installed with `pip install -e .` inside an activated venv, or with `pipx`,
+this command is available directly. Explicit alternatives if you need them:
+
+```bash
+python -m weather_forecast --run
+
+python src/weather_forecast/main.py --run
 ```
 
 ## Project structure
 
 ```text
 src/
-  main.py
   weather_forecast/
+    main.py       entry point, registered as the `weather-forecast` command via
+                   [project.scripts] in pyproject.toml
     cli/          command-line argument parsing
     chart/        PDF download, PNG conversion, image resizing
     forecast/     LLaVA inference (WeatherVision)
@@ -76,5 +124,8 @@ is subject to the Tongyi Qianwen Research License and is restricted to non-comme
 
 ---
 
-East Van AI -- AI for the Rest of Us
-<https://github.com/east-van-ai>
+**East Van AI** · AI for the rest of us! · Vancouver, BC, Canada
+
+[github.com/east-van-ai](https://github.com/east-van-ai) · <east-van-ai@proton.me>
+
+Copyright (c) 2026 Go Nakamaru

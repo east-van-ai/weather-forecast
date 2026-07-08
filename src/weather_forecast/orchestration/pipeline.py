@@ -5,11 +5,11 @@
 # ========================================================================
 import logging
 from pathlib import Path
-from src.weather_forecast.chart.downloader import WeatherPDFDownloader
-from src.weather_forecast.chart.processors.image_tools import resize_png
-from src.weather_forecast.chart.processors.pdf_tools import pdf_to_png
-from src.weather_forecast.forecast.generator import WeatherVision
-from src.weather_forecast.salesforce.weather import ReportUpsertResult, SFWeatherClient
+from weather_forecast.chart.downloader import WeatherPDFDownloader
+from weather_forecast.chart.processors.image_tools import resize_png
+from weather_forecast.chart.processors.pdf_tools import pdf_to_png
+from weather_forecast.forecast.generator import WeatherVision
+from weather_forecast.salesforce.weather import ReportUpsertResult, SFWeatherClient
 
 WEATHER_PDF_URL = "https://www.data.jma.go.jp/yoho/data/wxchart/quick/ASAS_COLOR.pdf"
 DATA_DIR = "./data"

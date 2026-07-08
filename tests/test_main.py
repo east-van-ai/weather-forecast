@@ -4,7 +4,7 @@
 # https://github.com/east-van-ai
 # ========================================================================
 import pytest
-from src.main import load_env_values
+from weather_forecast.main import load_env_values
 
 
 @pytest.fixture

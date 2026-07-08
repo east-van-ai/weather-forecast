@@ -7,6 +7,23 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Real Python packaging: `pyproject.toml` now declares `[build-system]` and
+  `[tool.setuptools.packages.find]`, making the project properly installable
+  instead of relying on `pythonpath` workarounds
+- `[project.scripts]` entry registers a `weather-forecast` command on install,
+  so the pipeline can be run directly without `python -m` or a full file path
+- `WF_VISION_MODEL` env var added, allows overriding the LLaVA vision model 
+  without touching source (falls back to the LLaVA default if unset)
+
+### Changed
+
+- Fixed src-layout: `main.py` now lives inside `weather_forecast/` as the
+  package's real entry point; the old `src/__init__.py` (which incorrectly
+  made `src` itself importable) was removed
+- README and SETUP updated to reflect the new install and run instructions
+
 ## [v0.7.0] - 2026-05-21
 
 ### Changed
@@ -98,3 +115,11 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 - Preview image generation
 - LLaVA-based forecast extraction
 - Salesforce upload (PDF-hash, PNG-preview, forecast text)
+
+---
+
+**East Van AI** · AI for the rest of us! · Vancouver, BC, Canada
+
+[github.com/east-van-ai](https://github.com/east-van-ai) · <east-van-ai@proton.me>
+
+Copyright (c) 2026 Go Nakamaru

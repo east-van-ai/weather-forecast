@@ -6,8 +6,8 @@
 import logging
 import os
 import sys
-from src.weather_forecast.cli.app import parse_args
-from src.weather_forecast.orchestration.pipeline import WeatherPipeline
+from weather_forecast.cli.app import parse_args
+from weather_forecast.orchestration.pipeline import WeatherPipeline
 
 logger = logging.getLogger(__name__)
 

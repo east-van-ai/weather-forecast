@@ -6,7 +6,7 @@
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from src.weather_forecast.chart.processors.pdf_tools import pdf_to_png
+from weather_forecast.chart.processors.pdf_tools import pdf_to_png
 
 
 def test_pdf_to_png(tmp_path):
@@ -22,7 +22,7 @@ def test_pdf_to_png(tmp_path):
     mock_image.save = MagicMock()
 
     with patch(
-        "src.weather_forecast.chart.processors.pdf_tools.convert_from_path",
+        "weather_forecast.chart.processors.pdf_tools.convert_from_path",
         return_value=[mock_image],
     ) as mock_convert:
         output = pdf_to_png(pdf_path, png_path)

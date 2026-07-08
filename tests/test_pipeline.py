@@ -5,7 +5,7 @@
 # ========================================================================
 from pathlib import Path
 from unittest.mock import MagicMock
-from src.weather_forecast.orchestration.pipeline import WeatherPipeline
+from weather_forecast.orchestration.pipeline import WeatherPipeline
 
 
 def test_run_happy_path(mocker):
@@ -74,7 +74,7 @@ def test_download_chart(monkeypatch):
         return True, "hash123", "/tmp/test.pdf"
 
     monkeypatch.setattr(
-        "src.weather_forecast.chart.downloader.WeatherPDFDownloader.refresh_pdf",
+        "weather_forecast.chart.downloader.WeatherPDFDownloader.refresh_pdf",
         fake_refresh,
     )
 
@@ -104,11 +104,11 @@ def test_prepare_images(mocker):
 
     # Arrange
     mock_pdf_to_png = mocker.patch(
-        "src.weather_forecast.orchestration.pipeline.pdf_to_png",
+        "weather_forecast.orchestration.pipeline.pdf_to_png",
         return_value=Path("/fake/weather.png"),
     )
     mock_resize_png = mocker.patch(
-        "src.weather_forecast.orchestration.pipeline.resize_png",
+        "weather_forecast.orchestration.pipeline.resize_png",
         return_value=Path("/fake/weather_small.png"),
     )
 
@@ -145,7 +145,7 @@ def test_generate_forecast(mocker):
     }
 
     mock_weather_vision = mocker.patch(
-        "src.weather_forecast.orchestration.pipeline.WeatherVision", autospec=True
+        "weather_forecast.orchestration.pipeline.WeatherVision", autospec=True
     )
     mock_weather_vision.return_value.generate_forecast.return_value = fake_forecast
 
@@ -162,7 +162,7 @@ def test_publish_salesforce(mocker):
 
     # Arrange
     fake_sf = mocker.patch(
-        "src.weather_forecast.orchestration.pipeline.SFWeatherClient",
+        "weather_forecast.orchestration.pipeline.SFWeatherClient",
         autospec=True,
     ).return_value
 

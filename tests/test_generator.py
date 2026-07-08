@@ -8,7 +8,7 @@ import pytest
 from PIL import Image
 from unittest.mock import MagicMock, patch
 
-from src.weather_forecast.forecast.generator import WeatherVision
+from weather_forecast.forecast.generator import WeatherVision
 
 
 @pytest.fixture
@@ -22,9 +22,9 @@ def fake_image(tmp_path):
     return img_path
 
 
-@patch("src.weather_forecast.forecast.generator.AutoProcessor")
-@patch("src.weather_forecast.forecast.generator.AutoModelForImageTextToText")
-# @patch("src.weather_forecast.forecast.generator.Qwen2VLForConditionalGeneration")
+@patch("weather_forecast.forecast.generator.AutoProcessor")
+@patch("weather_forecast.forecast.generator.AutoModelForImageTextToText")
+# @patch("weather_forecast.forecast.generator.Qwen2VLForConditionalGeneration")
 def test_weather_vision_init_cpu(
     mock_model_cls,
     mock_processor_cls,
@@ -48,9 +48,9 @@ def test_weather_vision_init_cpu(
         model.eval.assert_called_once()
 
 
-@patch("src.weather_forecast.forecast.generator.AutoProcessor")
-@patch("src.weather_forecast.forecast.generator.AutoModelForImageTextToText")
-# @patch("src.weather_forecast.forecast.generator.Qwen2VLForConditionalGeneration")
+@patch("weather_forecast.forecast.generator.AutoProcessor")
+@patch("weather_forecast.forecast.generator.AutoModelForImageTextToText")
+# @patch("weather_forecast.forecast.generator.Qwen2VLForConditionalGeneration")
 def test_generate_forecast(
     mock_model_cls,
     mock_processor_cls,
@@ -85,3 +85,28 @@ def test_generate_forecast(
     model.generate.assert_called_once()
     processor.decode.assert_called_once()
     assert text == "Sunny with scattered clouds."
+
+
+@patch("weather_forecast.forecast.generator.AutoProcessor")
+@patch("weather_forecast.forecast.generator.AutoModelForImageTextToText")
+def test_model_name_resolution_order(mock_model_cls, mock_processor_cls, monkeypatch):
+    """
+    Explicit arg > env var > default, in that order.
+    """
+    mock_processor_cls.from_pretrained.return_value = MagicMock()
+    mock_model_cls.from_pretrained.return_value = MagicMock()
+
+    with patch("torch.backends.mps.is_available", return_value=False):
+        # No arg, no env var -> falls back to default
+        monkeypatch.delenv("WF_VISION_MODEL", raising=False)
+        wv = WeatherVision()
+        assert wv.model_name == WeatherVision.DEFAULT_MODEL_NAME
+
+        # No arg, env var set -> uses env var
+        monkeypatch.setenv("WF_VISION_MODEL", "some-org/some-vision-model")
+        wv = WeatherVision()
+        assert wv.model_name == "some-org/some-vision-model"
+
+        # Explicit arg wins over env var
+        wv = WeatherVision(model_name="explicit/model-choice")
+        assert wv.model_name == "explicit/model-choice"

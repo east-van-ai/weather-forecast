@@ -6,7 +6,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 
-from src.weather_forecast.salesforce.base import SalesforceBaseClient
+from weather_forecast.salesforce.base import SalesforceBaseClient
 
 FAKE_PRIVATE_KEY = b"-----BEGIN PRIVATE KEY-----\nFAKEKEY\n-----END PRIVATE KEY-----"
 FAKE_ACCESS_TOKEN = "XYZ123456789"
@@ -23,11 +23,11 @@ FAKE_CONFIG = {
 def setup_auth_patches():
     """Return un-started patches so each test activates them cleanly."""
     jwt_patch = patch(
-        "src.weather_forecast.salesforce.base.jwt.encode", return_value="FAKE_JWT"
+        "weather_forecast.salesforce.base.jwt.encode", return_value="FAKE_JWT"
     )
 
-    post_patch = patch("src.weather_forecast.salesforce.base.requests.post")
-    sf_patch = patch("src.weather_forecast.salesforce.base.Salesforce")
+    post_patch = patch("weather_forecast.salesforce.base.requests.post")
+    sf_patch = patch("weather_forecast.salesforce.base.Salesforce")
 
     return jwt_patch, post_patch, sf_patch
 
