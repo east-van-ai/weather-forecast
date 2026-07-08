@@ -7,6 +7,8 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.8.0] - 2026-07-08
+
 ### Added
 
 - Real Python packaging: `pyproject.toml` now declares `[build-system]` and
@@ -14,8 +16,10 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
   instead of relying on `pythonpath` workarounds
 - `[project.scripts]` entry registers a `weather-forecast` command on install,
   so the pipeline can be run directly without `python -m` or a full file path
-- `WF_VISION_MODEL` env var added, allows overriding the LLaVA vision model 
+- `WF_VISION_MODEL` env var added, allows overriding the LLaVA vision model
   without touching source (falls back to the LLaVA default if unset)
+- `pipx install` support: `weather-forecast` can now be installed and run
+  directly from the GitHub repo, no cloning or manual pip install required
 
 ### Changed
 

@@ -10,12 +10,12 @@ No cloud AI. No GPU rental. No subscriptions. Just your Mac doing the work.
   - L7: [Table of Contents](#table-of-contents)
   - L20: [What it does](#what-it-does)
   - L30: [Requirements](#requirements)
-  - L43: [Configuration](#configuration)
-  - L62: [Installing](#installing)
-  - L80: [Running](#running)
-  - L95: [Project structure](#project-structure)
-  - L112: [Running tests](#running-tests)
-  - L118: [License](#license)
+  - L39: [Configuration](#configuration)
+  - L58: [Installing](#installing)
+  - L81: [Running](#running)
+  - L96: [Project structure](#project-structure)
+  - L113: [Running tests](#running-tests)
+  - L119: [License](#license)
 
 ## What it does
 
@@ -29,16 +29,12 @@ is unavailable. Built and tested on an M1 MacBook Air with 8 GB RAM.
 
 ## Requirements
 
-- Python 3.14+
+- [pipx](https://pipx.pypa.io) — installs and runs the tool in its own isolated environment
+- Python 3.14+ (pipx needs this available on your system to build that environment;
+  install via [python.org](https://www.python.org/downloads/) or `brew install python@3.14`)
 - macOS with Apple Silicon (M1 or later recommended)
+- poppler (`brew install poppler`), required by `pdf2image` for PDF rendering
 - A Salesforce Developer Edition org with JWT Bearer auth configured
-- poppler (for pdf2image)
-
-Install Python dependencies:
-
-```bash
-pip install -r requirements.txt
-```
 
 ## Configuration
 
@@ -62,19 +58,24 @@ WF_VISION_MODEL   # HuggingFace model id for the vision model. Defaults to
 ## Installing
 
 ```bash
-git clone https://github.com/east-van-ai/weather-forecast.git
-
-cd weather-forecast
+pipx install "git+https://github.com/east-van-ai/weather-forecast.git@v0.8.0"
 ```
 
-Then pick one, depending on how you plan to use it:
+That's it, no cloning, no manual `pip install`, no virtual environment to manage.
+`weather-forecast` becomes available as a standalone command right away.
+
+Pin to a released version (`@v0.8.0` above) rather than installing from `main`,
+since `main` can move between releases. Check the
+[releases page](https://github.com/east-van-ai/weather-forecast/releases) for
+the latest tag.
+
+Developing on the project itself, rather than just running it? Clone and
+install in editable mode instead:
 
 ```bash
-# For development (editable install into your venv)
+git clone https://github.com/east-van-ai/weather-forecast.git
+cd weather-forecast
 pip install -e .
-
-# Or, for regular use as a standalone command (isolated environment)
-pipx install .
 ```
 
 ## Running
