@@ -3,7 +3,6 @@
 # East Van AI -- AI for the rest of us!
 # https://github.com/east-van-ai
 # ========================================================================
-import pytest
 from unittest.mock import patch, MagicMock
 
 from weather_forecast.salesforce.weather import ReportUpsertResult, SFWeatherClient

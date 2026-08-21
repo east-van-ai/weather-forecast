@@ -20,9 +20,7 @@ class WeatherVision:
     def __init__(self, model_name: str = None):
         # Resolve model: explicit arg > env var > default
         self.model_name = (
-            model_name
-            or os.getenv("WF_VISION_MODEL")
-            or self.DEFAULT_MODEL_NAME
+            model_name or os.getenv("WF_VISION_MODEL") or self.DEFAULT_MODEL_NAME
         )
 
         # Detect MPS

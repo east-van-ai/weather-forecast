@@ -4,6 +4,7 @@
 # https://github.com/east-van-ai
 # ========================================================================
 import logging
+import sys
 from pathlib import Path
 from weather_forecast.chart.downloader import WeatherPDFDownloader
 from weather_forecast.chart.processors.image_tools import resize_png
@@ -12,7 +13,6 @@ from weather_forecast.forecast.generator import WeatherVision
 from weather_forecast.salesforce.weather import ReportUpsertResult, SFWeatherClient
 
 WEATHER_PDF_URL = "https://www.data.jma.go.jp/yoho/data/wxchart/quick/ASAS_COLOR.pdf"
-DATA_DIR = "./data"
 WEATHER_PNG = "weather.png"
 WEATHER_SMALL_PNG = "weather_small.png"
 
@@ -83,6 +83,20 @@ class WeatherPipeline:
         logger.info("Pipeline run completed successfully")
         return True
 
+    def _get_data_dir(self, app_name="weather-forecast"):
+        """Determine data directory based on installation method."""
+        if ".local/pipx" in str(sys.prefix):
+            # Running under pipx
+            data_dir = Path.home() / ".cache" / app_name / "data"
+        else:
+            # Running normally
+            data_dir = Path("./data")
+
+        # Create if it doesn't exist
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+        return data_dir
+
     def _download_chart(self) -> dict:
         """
         Download the weather chart and return its status.
@@ -90,7 +104,9 @@ class WeatherPipeline:
         Returns:
             dict: A dictionary containing 'updated' (bool), 'hash' (str), and 'path' (Path).
         """
-        downloader = WeatherPDFDownloader(Path(DATA_DIR), WEATHER_PDF_URL)
+        data_dir = self._get_data_dir()
+
+        downloader = WeatherPDFDownloader(Path(data_dir), WEATHER_PDF_URL)
 
         updated, pdf_hash, pdf_path = downloader.refresh_pdf()
 
@@ -132,12 +148,14 @@ class WeatherPipeline:
         Returns:
             dict: Paths to prepared images
         """
+        data_dir = self._get_data_dir()
+
         # Convert to PNG for AI and Salesforce
-        regular_png_path = pdf_to_png(chart["path"], Path(DATA_DIR) / WEATHER_PNG)
+        regular_png_path = pdf_to_png(chart["path"], Path(data_dir) / WEATHER_PNG)
 
         # Create resized 300px PNG for Salesforce (lightweight)
         small_png_path = resize_png(
-            regular_png_path, Path(DATA_DIR) / WEATHER_SMALL_PNG, width=300
+            regular_png_path, Path(data_dir) / WEATHER_SMALL_PNG, width=300
         )
 
         images = {

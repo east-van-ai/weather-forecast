@@ -3,8 +3,6 @@
 # East Van AI -- AI for the rest of us!
 # https://github.com/east-van-ai
 # ========================================================================
-import pytest
-from pathlib import Path
 from unittest.mock import patch, MagicMock
 from weather_forecast.chart.processors.pdf_tools import pdf_to_png
 

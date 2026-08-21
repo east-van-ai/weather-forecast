@@ -7,7 +7,29 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [v0.8.0] - 2026-07-08
+## [0.9.0] - 2026-08-21
+
+### Added
+
+- Bare `weather-forecast` invocation (no arguments) prints the banner
+  docstring and exits 0 without touching anything
+- Under a pipx install the data directory moves to
+  `~/.cache/weather-forecast/data`, so a run no longer writes into whatever
+  directory it was launched from; a normal install still uses `./data`
+- MIT LICENSE file
+
+### Changed
+
+- Entry module renamed `main.py` → `cli.py` to match the East Van AI house
+  style (mdmap, vex): a large banner docstring documents usage, flags,
+  environment variables and exit codes at the top of the file
+- The `cli/` package was folded into `cli.py`: `parse_args` moved out of
+  `cli/app.py` and the package was removed; `[project.scripts]` now points
+  at `weather_forecast.cli:main` (tests merged into `tests/test_cli.py`)
+- README trimmed to the user-facing pipx flow: development-only install and
+  run instructions removed; project structure now lives in DESIGN.md
+
+## [0.8.0] - 2026-07-08
 
 ### Added
 
@@ -28,7 +50,7 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
   made `src` itself importable) was removed
 - README and SETUP updated to reflect the new install and run instructions
 
-## [v0.7.0] - 2026-05-21
+## [0.7.0] - 2026-05-21
 
 ### Changed
 
@@ -37,14 +59,14 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 - Removed .env.example (no longer applicable)
 - Added headers in source code files
 
-## [v0.6.0] - 2026-03-29
+## [0.6.0] - 2026-03-29
 
 ### Changed
 
 - Cleaned up and standardized markdown documentation
 - Updated example and metadata files
 
-## [v0.5.0] - Unreleased
+## [0.5.0] - Unreleased
 
 ### Notes
 
@@ -52,7 +74,7 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 - Issues closed as part of project reset
 - Development resumes under v0.6
 
-## [v0.4.1] - 2026-01-01
+## [0.4.1] - 2026-01-01
 
 ### Added
 
@@ -70,7 +92,7 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 
 - Continuous Integration (CI) automation
 
-## [v0.3.0] - 2025-12-24
+## [0.3.0] - 2025-12-24
 
 ### Added
 
@@ -90,7 +112,7 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 - No Flows or Process Builders
 - No Reports, Page Layouts, or FlexiPages customized
 
-## [v0.2.4] - 2025-12-22
+## [0.2.4] - 2025-12-22
 
 ### Added
 
@@ -110,7 +132,7 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 - Missing weather images in Salesforce records
 - Script naming inconsistencies
 
-## [v0.1.0] - 2025-12-11
+## [0.1.0] - 2025-12-11
 
 ### Added
 
@@ -119,11 +141,3 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 - Preview image generation
 - LLaVA-based forecast extraction
 - Salesforce upload (PDF-hash, PNG-preview, forecast text)
-
----
-
-**East Van AI** · AI for the rest of us! · Vancouver, BC, Canada
-
-[github.com/east-van-ai](https://github.com/east-van-ai) · <east-van-ai@proton.me>
-
-Copyright (c) 2026 Go Nakamaru

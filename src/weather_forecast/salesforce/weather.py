@@ -32,8 +32,6 @@ class SFWeatherClient(SalesforceBaseClient):
         if not pdf_hash:
             raise ValueError("pdf_hash must not be empty")
 
-        escaped_hash = pdf_hash.replace("'", "\\'")
-
         # Using External ID (PDF_Hash__c) to upsert
         # Salesforce returns the ID and created status
         result = self.upsert(

@@ -13,7 +13,6 @@ Flow:
 4. Create a simple_salesforce client.
 """
 
-import os
 import time
 import jwt
 import requests

@@ -4,7 +4,7 @@
 # https://github.com/east-van-ai
 # ========================================================================
 import pytest
-from weather_forecast.main import load_env_values
+from weather_forecast.cli import load_env_values, parse_args
 
 
 @pytest.fixture
@@ -16,6 +16,12 @@ def mock_env(monkeypatch):
         "SF_SERVER_KEY",
         "-----BEGIN RSA PRIVATE KEY-----\nfakekey\n-----END RSA PRIVATE KEY-----",
     )
+
+
+def test_cli_run_flag():
+    """Test that the --run flag is parsed correctly."""
+    args = parse_args(["--run"])
+    assert args.run is True
 
 
 def test_load_env_values_all_present(mock_env):
