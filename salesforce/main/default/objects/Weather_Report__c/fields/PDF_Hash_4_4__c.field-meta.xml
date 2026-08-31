@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>PDF_Hash_4_4__c</fullName>
+    <externalId>false</externalId>
+    <formula>IF(LEN(PDF_Hash__c) &gt; 0, LEFT(PDF_Hash__c, 4) + &quot;..&quot; + RIGHT(PDF_Hash__c, 4), &quot; - &quot;)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>PDF Hash (4..4)</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

@@ -8,18 +8,15 @@ No cloud AI. No GPU rental. No subscriptions. Just your Mac doing the work.
 
 1. Downloads the latest JMA surface analysis PDF
 2. Converts it to PNG
-3. Feeds it to LLaVA Interleave Qwen 0.5B running locally via Hugging Face Transformers
-4. Uploads the forecast text and a preview image to a Salesforce Developer Edition org
+3. Feeds it to SmolVLM2 500M running locally via Hugging Face Transformers
+4. Uploads what the model says, plus a preview image, to a Salesforce
+   Developer Edition org
 
 The model runs on MPS (Apple Silicon unified memory) and falls back to CPU if MPS
 is unavailable. Built and tested on an M1 MacBook Air with 8 GB RAM.
 
 ## Requirements
 
-- [pipx](https://pipx.pypa.io) — installs and runs the tool in its own isolated environment
-- Python 3.14+ (pipx needs this available on your system to build that environment;
-  install via [python.org](https://www.python.org/downloads/) or `brew install python@3.14`)
-- macOS with Apple Silicon (M1 or later recommended)
 - poppler (`brew install poppler`), required by `pdf2image` for PDF rendering
 - A Salesforce Developer Edition org with JWT Bearer auth configured
 
@@ -35,17 +32,10 @@ SF_AUDIENCE
 SF_SERVER_KEY
 ```
 
-Optional:
-
-```text
-WF_VISION_MODEL   # HuggingFace model id for the vision model. Defaults to
-                  # llava-hf/llava-interleave-qwen-0.5b-hf if not set.
-```
-
 ## Installing
 
 ```bash
-pipx install "git+https://github.com/east-van-ai/weather-forecast.git@stable"
+pipx install "git+https://github.com/east-van-ai/weather-forecast.git"
 ```
 
 That's it, no cloning, no manual `pip install`, no virtual environment to manage.
@@ -54,15 +44,16 @@ That's it, no cloning, no manual `pip install`, no virtual environment to manage
 ## Running
 
 ```bash
-weather-forecast --run
+weather-forecast run
 ```
 
-## License
+`weather-forecast` on its own prints what it can do and touches nothing.
 
-MIT License
+## Model License
 
-The vision model ([LLaVA Interleave Qwen 0.5B](https://huggingface.co/llava-hf/llava-interleave-qwen-0.5b-hf))
-is subject to the Tongyi Qianwen Research License and is restricted to non-commercial use.
+The vision model ([SmolVLM2 500M](https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct))
+is Apache 2.0. The `-Video-Instruct` name is upstream. Still images are what
+this project feeds it.
 
 ---
 

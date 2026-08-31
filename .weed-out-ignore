@@ -1,0 +1,18 @@
+# for orphan release on GitHub
+
+.git/
+.github/**/*.yaml
+.gitignore
+.weed-out-ignore
+data/
+logs/
+salesforce/
+src/**/*.py
+tests/*.py
+CHANGELOG.md
+DESIGN.md
+LICENSE
+pyproject.toml
+README.md
+SETUP.md
+sfdx-project.json

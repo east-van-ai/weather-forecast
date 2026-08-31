@@ -1,0 +1,17 @@
+# Salesforce auth & org-specific
+.sf/
+sfdx-config.json
+**/.sf/
+
+# Local retrieve/deploy artifacts
+**/*.log
+**/*.tmp
+**/*.bak
+
+# OS / editor junk
+.DS_Store
+.vscode/
+.idea/
+
+# Retrievable but meaningless
+**/listViews/**

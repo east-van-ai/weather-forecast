@@ -24,7 +24,6 @@ def fake_image(tmp_path):
 
 @patch("weather_forecast.forecast.generator.AutoProcessor")
 @patch("weather_forecast.forecast.generator.AutoModelForImageTextToText")
-# @patch("weather_forecast.forecast.generator.Qwen2VLForConditionalGeneration")
 def test_weather_vision_init_cpu(
     mock_model_cls,
     mock_processor_cls,
@@ -50,7 +49,6 @@ def test_weather_vision_init_cpu(
 
 @patch("weather_forecast.forecast.generator.AutoProcessor")
 @patch("weather_forecast.forecast.generator.AutoModelForImageTextToText")
-# @patch("weather_forecast.forecast.generator.Qwen2VLForConditionalGeneration")
 def test_generate_forecast(
     mock_model_cls,
     mock_processor_cls,
@@ -60,12 +58,12 @@ def test_generate_forecast(
     Test forecast generation flow with mocked model + processor.
     """
     processor = MagicMock()
-    processor.apply_chat_template.return_value = "fake chat text"
-    processor.return_value = {
+    # The prompt is three tokens long, so decoding starts at index 3.
+    processor.apply_chat_template.return_value = {
         "input_ids": torch.tensor([[1, 2, 3]]),
         "pixel_values": torch.randn(1, 3, 224, 224),
     }
-    processor.decode.return_value = "Sunny with scattered clouds."
+    processor.decode.return_value = "  A weather chart.  "
 
     fake_output = torch.tensor([[1, 2, 3, 4, 5]])
     model = MagicMock()
@@ -76,37 +74,42 @@ def test_generate_forecast(
 
     with patch("torch.backends.mps.is_available", return_value=False):
         wv = WeatherVision()
+        # A Path is passed on purpose: the pipeline deals in Path, and the
+        # chat template rejects anything but a string.
         text = wv.generate_forecast(
-            file_path=str(fake_image),
-            prompt="Describe the weather.",
+            file_path=fake_image,
+            prompt="What is this?",
             max_tokens=50,
         )
 
     model.generate.assert_called_once()
     processor.decode.assert_called_once()
-    assert text == "Sunny with scattered clouds."
+
+    # Only the generated tail is decoded, and the answer is stripped.
+    decoded = processor.decode.call_args.args[0]
+    assert torch.equal(decoded, torch.tensor([4, 5]))
+    assert text == "A weather chart."
+
+    # The image and the prompt reach the processor through the template.
+    messages = processor.apply_chat_template.call_args.args[0]
+    content = messages[0]["content"]
+    assert content[0] == {"type": "image", "path": str(fake_image)}
+    assert isinstance(content[0]["path"], str)
+    assert content[1] == {"type": "text", "text": "What is this?"}
 
 
 @patch("weather_forecast.forecast.generator.AutoProcessor")
 @patch("weather_forecast.forecast.generator.AutoModelForImageTextToText")
-def test_model_name_resolution_order(mock_model_cls, mock_processor_cls, monkeypatch):
+def test_model_name_resolution_order(mock_model_cls, mock_processor_cls):
     """
-    Explicit arg > env var > default, in that order.
+    Explicit arg wins over the default.
     """
     mock_processor_cls.from_pretrained.return_value = MagicMock()
     mock_model_cls.from_pretrained.return_value = MagicMock()
 
     with patch("torch.backends.mps.is_available", return_value=False):
-        # No arg, no env var -> falls back to default
-        monkeypatch.delenv("WF_VISION_MODEL", raising=False)
-        wv = WeatherVision()
-        assert wv.model_name == WeatherVision.DEFAULT_MODEL_NAME
-
-        # No arg, env var set -> uses env var
-        monkeypatch.setenv("WF_VISION_MODEL", "some-org/some-vision-model")
-        wv = WeatherVision()
-        assert wv.model_name == "some-org/some-vision-model"
-
-        # Explicit arg wins over env var
-        wv = WeatherVision(model_name="explicit/model-choice")
-        assert wv.model_name == "explicit/model-choice"
+        assert WeatherVision().model_name == WeatherVision.DEFAULT_MODEL_NAME
+        assert (
+            WeatherVision("some-org/some-vision-model").model_name
+            == "some-org/some-vision-model"
+        )

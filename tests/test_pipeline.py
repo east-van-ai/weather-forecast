@@ -138,11 +138,7 @@ def test_generate_forecast(mocker):
         "small": Path("/fake/weather_small.png"),
     }
 
-    fake_forecast = "Today's weather forecast:\nSunny with scattered clouds"
-    expected = {
-        "title": "Today's weather forecast:",
-        "content": "Sunny with scattered clouds",
-    }
+    fake_forecast = "This is a map of the JMA surface analysis."
 
     mock_weather_vision = mocker.patch(
         "weather_forecast.orchestration.pipeline.WeatherVision", autospec=True
@@ -153,8 +149,12 @@ def test_generate_forecast(mocker):
     result = pipeline._generate_forecast(fake_images)
 
     # Assert
-    assert result == expected
-    mock_weather_vision.return_value.generate_forecast.assert_called_once()
+    assert result == fake_forecast
+
+    # The full-size render is what the model sees, never the thumbnail.
+    mock_weather_vision.return_value.generate_forecast.assert_called_once_with(
+        fake_images["regular"], "What is this?"
+    )
 
 
 def test_publish_salesforce(mocker):
@@ -172,7 +172,7 @@ def test_publish_salesforce(mocker):
 
     chart = {"hash": "abc123"}
     images = {"small": Path("/fake/small.png")}
-    forecast = {"content": "Sunny"}
+    forecast = "Sunny"
 
     # Act
     result = pipeline._publish_salesforce(chart, images, forecast)

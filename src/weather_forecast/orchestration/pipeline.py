@@ -166,42 +166,33 @@ class WeatherPipeline:
 
     def _generate_forecast(self, images):
         """
-        Generate AI-based weather forecast from the images.
+        Describe the chart with the local vision model.
+
+        The full-size render is used on purpose. The 300px thumbnail carries
+        too little of the chart to survive the model's crop splitting.
 
         Args:
             images (dict): Prepared images from _prepare_images()
         Returns:
-            dict: Generated forecast with 'title' and 'content'
+            str: The model's description of the chart
         """
         wv = WeatherVision()
-        ai_forecast = wv.generate_forecast(
-            images["regular"], "Title and description\n<image>"
-        )
-
-        lines = ai_forecast.split("\n", 1)  # Split into at most 2 parts
-        title = lines[0]
-        content = lines[1] if len(lines) > 1 else ""
-
-        forecast = {
-            "title": title,
-            "content": content,
-        }
-        return forecast
+        return wv.generate_forecast(images["regular"], "What is this?")
 
     def _publish_salesforce(
-        self, chart: dict, images: dict, forecast: dict
+        self, chart: dict, images: dict, forecast: str
     ) -> ReportUpsertResult:
         """
         Publish the forecast and images to Salesforce.
 
         Args:
             images (dict): Prepared images from _prepare_images()
-            forecast (dict): Generated forecast from _generate_forecast()
+            forecast (str): Chart description from _generate_forecast()
         Returns:
             str: Salesforce record ID
         """
         sf = SFWeatherClient(self.config)
-        report = sf.upsert_report(chart["hash"], forecast["content"])
+        report = sf.upsert_report(chart["hash"], forecast)
 
         sf.ensure_preview_image(report.record_id, images["small"])
 

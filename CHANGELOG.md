@@ -7,6 +7,42 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-08-31
+
+### Added
+
+- `weather-forecast version` and `weather-forecast --version` both print the
+  installed version and exit 0. The number is read from the installed
+  distribution metadata, so `pyproject.toml` stays the only copy
+
+### Changed
+
+- The command line takes a command word: `weather-forecast run` replaces
+  `weather-forecast --run`, and the flags `--force` and `--dryrun` follow it
+- The vision model is now SmolVLM2 500M, replacing LLaVA Interleave Qwen 0.5B.
+  The prompt is "What is this?" and the answer is stored as written. Licensing
+  moves to Apache 2.0, so the non-commercial restriction is gone.
+- The prompt is built by the processor's chat template, and only the generated
+  tail is decoded
+- The banner's exit-code list now names argparse's own exit 2
+- Dependencies are declared once, in `pyproject.toml`; the development install
+  is now `pip install -e . --group dev`, which needs pip 25.1 or newer
+- Test tooling moved to a `dev` dependency group, so a `pipx` install of the
+  command no longer carries a test runner
+
+### Removed
+
+- `--run`. Executing takes the `run` command word
+- `WF_VISION_MODEL`. It only ever accepted models that take a literal
+  `<image>` in raw text, which the new model does not
+- The title split. Only the description half was ever published
+- `requirements.txt`, `requirements-dev.txt`, and `requirements-pinned.txt`
+
+### Fixed
+
+- README and SETUP.md installed from branch pins that do not exist on the
+  public repo; both now install from the default branch
+
 ## [0.9.0] - 2026-08-21
 
 ### Added

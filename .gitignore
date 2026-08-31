@@ -1,0 +1,34 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info
+build/
+dist/
+
+# macOS and editor files
+.DS_Store
+.vscode/
+.idea/
+
+# dotenv library files
+.env
+*.env
+
+# weather chart files #
+*.pdf
+*.png
+
+# SSL certificate files #
+server.key
+server.crt
+
+# Salesforce cli files
+.sfdx/
+
+# markdownlint
+.markdownlint.json
+.markdownlintignore

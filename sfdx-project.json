@@ -1,0 +1,12 @@
+{
+  "packageDirectories": [
+    {
+      "path": "salesforce",
+      "default": true
+    }
+  ],
+  "name": "weather-forecast",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "64.0"
+}
