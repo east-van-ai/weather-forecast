@@ -1,8 +1,3 @@
-# =======================================================================
-# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
-# East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
-# ========================================================================
 import base64
 from os.path import basename, splitext
 from typing import NamedTuple
@@ -11,6 +6,8 @@ from .base import SalesforceBaseClient
 
 
 class ReportUpsertResult(NamedTuple):
+    """The record an upsert touched, and whether it was newly created."""
+
     record_id: str
     created: bool
 
@@ -32,8 +29,6 @@ class SFWeatherClient(SalesforceBaseClient):
         if not pdf_hash:
             raise ValueError("pdf_hash must not be empty")
 
-        # Using External ID (PDF_Hash__c) to upsert
-        # Salesforce returns the ID and created status
         result = self.upsert(
             "Weather_Report__c",
             external_id_field="PDF_Hash__c",

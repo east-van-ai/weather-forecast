@@ -1,8 +1,3 @@
-# =======================================================================
-# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
-# East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
-# ========================================================================
 """Pin the accepted command line.
 
 A command line that drifts from the documented grammar still parses, it just
@@ -57,29 +52,60 @@ def test_bare_prints_the_banner(monkeypatch, capsys):
     assert "Usage:" in printed
 
 
-def test_run_alone_acts(monkeypatch, dispatched):
-    """Test that the run command word on its own reaches the pipeline."""
+def test_run_alone_prints_documentation(monkeypatch, capsys, dispatched):
+    """Test that the run command word on its own answers with its own docs."""
     assert invoke(monkeypatch, "run") == EXIT_OK
-    assert len(dispatched) == 1
+    printed = capsys.readouterr().out
+    assert "weather-forecast run" in printed
+    assert "--commit" in printed
+    assert dispatched == []
+
+
+def test_run_without_a_mode_is_an_error(monkeypatch, capsys, dispatched):
+    """Test that a run carrying no mode flag is our own error, exit 1."""
+    assert invoke(monkeypatch, "run", "--force") == EXIT_ERROR
+    printed = capsys.readouterr().err
+    assert "--dry-run" in printed
+    assert "Usage:" in printed
+    assert dispatched == []
+
+
+def test_run_dry_run(monkeypatch, dispatched):
+    """Test that --dry-run reaches the run command."""
+    assert invoke(monkeypatch, "run", "--dry-run") == EXIT_OK
+    assert dispatched[0].dry_run is True
+    assert dispatched[0].commit is False
+
+
+def test_run_commit(monkeypatch, dispatched):
+    """Test that --commit reaches the run command."""
+    assert invoke(monkeypatch, "run", "--commit") == EXIT_OK
+    assert dispatched[0].commit is True
     assert dispatched[0].force is False
-    assert dispatched[0].dryrun is False
 
 
-def test_run_force(monkeypatch, dispatched):
-    """Test that --force reaches the run command."""
-    assert invoke(monkeypatch, "run", "--force") == EXIT_OK
+def test_run_force_rides_a_mode(monkeypatch, dispatched):
+    """Test that --force reaches the run command beside a mode flag."""
+    assert invoke(monkeypatch, "run", "--commit", "--force") == EXIT_OK
+    assert dispatched[0].commit is True
     assert dispatched[0].force is True
 
 
-def test_run_dryrun(monkeypatch, dispatched):
-    """Test that --dryrun reaches the run command."""
-    assert invoke(monkeypatch, "run", "--dryrun") == EXIT_OK
-    assert dispatched[0].dryrun is True
-
-
-def test_run_force_and_dryrun_conflict(monkeypatch, dispatched):
+def test_run_mode_flags_conflict(monkeypatch, dispatched):
     """Test that the two mode flags together are argparse's error, exit 2."""
-    assert invoke(monkeypatch, "run", "--force", "--dryrun") == EXIT_ARGPARSE
+    assert invoke(monkeypatch, "run", "--dry-run", "--commit") == EXIT_ARGPARSE
+    assert dispatched == []
+
+
+def test_dryrun_spelling_is_retired(monkeypatch, dispatched):
+    """Test that the old --dryrun spelling is an unknown flag, exit 2."""
+    assert invoke(monkeypatch, "run", "--dryrun") == EXIT_ARGPARSE
+    assert dispatched == []
+
+
+def test_commit_is_not_abbreviated(monkeypatch, dispatched):
+    """Test that a prefix of --commit is an unknown flag, exit 2."""
+    assert invoke(monkeypatch, "run", "--com") == EXIT_ARGPARSE
     assert dispatched == []
 
 
@@ -128,7 +154,7 @@ def test_stray_word_after_run(monkeypatch, capsys, dispatched):
 
 def test_stray_word_after_a_flag(monkeypatch, dispatched):
     """Test that a bare word past the flags is caught too, exit 1."""
-    assert invoke(monkeypatch, "run", "--force", "today") == EXIT_ERROR
+    assert invoke(monkeypatch, "run", "--commit", "today") == EXIT_ERROR
     assert dispatched == []
 
 

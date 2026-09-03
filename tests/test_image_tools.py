@@ -1,8 +1,3 @@
-# =======================================================================
-# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
-# East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
-# ========================================================================
 from unittest.mock import patch, MagicMock
 from weather_forecast.chart.processors.image_tools import resize_png
 

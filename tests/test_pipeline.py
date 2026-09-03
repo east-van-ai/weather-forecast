@@ -1,8 +1,3 @@
-# =======================================================================
-# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
-# East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
-# ========================================================================
 from pathlib import Path
 from unittest.mock import MagicMock
 from weather_forecast.orchestration.pipeline import WeatherPipeline
@@ -38,6 +33,35 @@ def test_run_happy_path(mocker):
     mock_prepare.assert_called_once_with(fake_chart)
     mock_generate.assert_called_once_with(fake_images)
     mock_publish.assert_called_once_with(fake_chart, fake_images, fake_forecast)
+
+
+def test_run_dry_run_stops_before_salesforce(mocker):
+    """Test that a dry run describes the chart and never publishes."""
+    pipeline = WeatherPipeline(dry_run=True)
+
+    # Arrange
+    fake_chart = MagicMock()
+    fake_images = MagicMock()
+    fake_forecast = MagicMock()
+
+    mocker.patch.object(pipeline, "_download_chart", return_value=fake_chart)
+    mocker.patch.object(pipeline, "_should_process", return_value=True)
+    mock_prepare = mocker.patch.object(
+        pipeline, "_prepare_images", return_value=fake_images
+    )
+    mock_generate = mocker.patch.object(
+        pipeline, "_generate_forecast", return_value=fake_forecast
+    )
+    mock_publish = mocker.patch.object(pipeline, "_publish_salesforce")
+
+    # Act
+    result = pipeline.run()
+
+    # Assert
+    assert result is True
+    mock_prepare.assert_called_once_with(fake_chart)
+    mock_generate.assert_called_once_with(fake_images)
+    mock_publish.assert_not_called()
 
 
 def test_run_skips_when_should_process_is_false(mocker):

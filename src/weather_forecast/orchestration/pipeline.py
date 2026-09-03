@@ -1,8 +1,3 @@
-# =======================================================================
-# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
-# East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
-# ========================================================================
 import logging
 import sys
 from pathlib import Path
@@ -24,7 +19,8 @@ class WeatherPipeline:
     Orchestrates the weather forecast workflow.
 
     The pipeline supports a `force` mode that controls skip behavior
-    based on local file state and idempotency guards.
+    based on local file state and idempotency guards, and a `dry_run`
+    mode that decides how far a run goes.
 
     force (bool):
         When True, forces the pipeline to run regardless of local file
@@ -33,6 +29,13 @@ class WeatherPipeline:
 
         When False, the pipeline respects local file state and skip
         conditions to avoid unnecessary processing.
+
+    dry_run (bool):
+        When True, the run stops after the forecast and never reaches
+        Salesforce, so the JWT handshake does not happen either. The
+        download, the render, and the model all run as usual: a dry run
+        is a full run that stops before the writes, not a run that skips
+        itself.
 
     config (dict)
         Contains Salesforce Credentials
@@ -45,9 +48,10 @@ class WeatherPipeline:
     Use with caution.
     """
 
-    def __init__(self, force: bool = False, config: dict = {}):
+    def __init__(self, force: bool = False, dry_run: bool = False, config: dict = {}):
         """Initialize the pipeline execution mode."""
         self.force = force
+        self.dry_run = dry_run
         self.config = config
 
     def run(self) -> bool:
@@ -70,6 +74,17 @@ class WeatherPipeline:
 
         logger.info("Generating forecast via AI")
         forecast = self._generate_forecast(images)
+
+        if self.dry_run:
+            logger.info(
+                "Dry run: would upsert Weather_Report__c PDF_Hash__c=%s "
+                "with preview %s",
+                chart["hash"],
+                images["small"],
+            )
+            logger.info("Dry run forecast: %s", forecast)
+            logger.info("Pipeline run completed successfully (dry run)")
+            return True
 
         logger.info("Publishing results to Salesforce")
         record = self._publish_salesforce(chart, images, forecast)
@@ -120,6 +135,10 @@ class WeatherPipeline:
         """
         Decide whether the pipeline should continue processing.
 
+        The PDF hash is the only condition. `force` is not consulted here: the
+        caller decides whether to ask at all, which keeps this answering one
+        question rather than two.
+
         Args:
             chart (dict): Output from _download_chart()
 
@@ -128,14 +147,6 @@ class WeatherPipeline:
         """
         if not chart.get("updated", False):
             return False
-
-        # future:
-        # if self.force:
-        #     return True
-        # if self.dryrun:
-        #     return False
-        # if not within_schedule_window():
-        #     return False
 
         return True
 

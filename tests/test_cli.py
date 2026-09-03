@@ -1,8 +1,3 @@
-# =======================================================================
-# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
-# East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
-# ========================================================================
 from importlib import metadata
 
 import pytest
@@ -23,25 +18,41 @@ def mock_env(monkeypatch):
 
 
 def test_run_command_defaults():
-    """Test that `run` alone parses with both mode flags off."""
+    """Test that `run` alone parses with every flag off.
+
+    The parser leaves the mode unset rather than rejecting it. Requiring one
+    is main's job, so that a missing mode is exit 1 and not argparse's 2.
+    """
     args = build_parser().parse_args(["run"])
     assert args.command == "run"
+    assert args.dry_run is False
+    assert args.commit is False
     assert args.force is False
-    assert args.dryrun is False
 
 
-def test_run_command_force():
-    """Test that --force is parsed onto the run command."""
-    args = build_parser().parse_args(["run", "--force"])
+def test_run_command_dry_run():
+    """Test that --dry-run is parsed onto the run command."""
+    args = build_parser().parse_args(["run", "--dry-run"])
+    assert args.dry_run is True
+    assert args.commit is False
+
+
+def test_run_command_commit():
+    """Test that --commit is parsed onto the run command."""
+    args = build_parser().parse_args(["run", "--commit"])
+    assert args.commit is True
+    assert args.dry_run is False
+
+
+def test_run_command_force_joins_either_mode():
+    """Test that --force sits outside the mode pair."""
+    args = build_parser().parse_args(["run", "--commit", "--force"])
+    assert args.commit is True
     assert args.force is True
-    assert args.dryrun is False
 
-
-def test_run_command_dryrun():
-    """Test that --dryrun is parsed onto the run command."""
-    args = build_parser().parse_args(["run", "--dryrun"])
-    assert args.dryrun is True
-    assert args.force is False
+    args = build_parser().parse_args(["run", "--dry-run", "--force"])
+    assert args.dry_run is True
+    assert args.force is True
 
 
 def test_version_line_names_the_program():

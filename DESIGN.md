@@ -24,30 +24,71 @@ tests/              Test suite for the weather forecast application
 The grammar is `weather-forecast COMMAND [--flags]`.
 
 ```text
-weather-forecast run [--force | --dryrun]
+weather-forecast run --dry-run [--force]
+weather-forecast run --commit [--force]
 weather-forecast version
 weather-forecast --version
 ```
 
-`--force` and `--dryrun` belong to `run` and are mutually exclusive.
+`--dry-run` and `--commit` belong to `run`, are mutually exclusive, and one of
+them is required. `--force` belongs to `run` too and combines with either.
 
-Execution takes a command word, never a flag. A flag the tool refuses to work
-without is a command word wearing the wrong clothes, and it sits in the wrong
-slot besides.
+Nothing runs by accident. Bare `weather-forecast` prints the banner, bare `run`
+prints the run command's own documentation, and neither touches anything.
+Reaching the pipeline takes a command word and a mode, both typed on purpose.
 
-Nothing runs by accident. Bare `weather-forecast` prints the banner and
-touches nothing, so reaching the pipeline takes a word typed on purpose.
+### Two axes, a command and a mode
 
-### A lone command word acts here
+The command says what work is asked for. The mode flag says how far to go with
+it. Holding the two apart is what keeps the work out of the flags: a
+hypothetical `weather-forecast --run` would be a command word wearing the wrong
+clothes, and it would sit in the wrong slot besides.
+
+How far to go is the other axis, and a flag is the right shape for it.
+`--commit` is the separate, explicit keystroke that makes a run real.
+`--dry-run` is the safe end of the same axis: download, render, describe, log
+what would be written, and stop.
+
+Neither end is a default. A `run` carrying no mode flag is an error, exit 1.
+Argparse can make the pair required on its own, but its failure exits 2, and 2
+is the code for a line argparse could not read. A line missing the mode reads
+fine and means nothing, so `main` checks the pair by hand and answers with
+weather-forecast's own error.
+
+The safe end could have been the default, which is what `weed-out` does, but a
+bare verb there already carries the path it acts on, so it has to mean
+something. Here `run` on its own is free to be a question, so it is one, and
+the axis stays spelled out.
+
+### `--force` is a third thing
+
+`--force` bypasses the unchanged-PDF skip. It says nothing about whether the
+run writes, which is why it sits outside the mutually exclusive pair and reads
+sensibly against both: `--dry-run --force` re-describes a chart that has not
+moved, `--commit --force` re-posts it.
+
+A dry run consumes the update it previewed. `refresh_pdf` rotates
+`current.pdf` to `last.pdf` and downloads either way, so the chart that counted
+as new during the preview is the one the next run finds unchanged. Committing
+after a preview therefore takes `--force`. A non-mutating preview would mean a
+second download path in the downloader, which costs more than reusing the flag
+that already exists for exactly this.
+
+### A dry run skips the Salesforce stage whole
+
+The JWT handshake never happens either. Authenticating would prove the
+credentials work, but the four `SF_*` variables are checked before the pipeline
+starts, which catches the failure that actually happens.
+
+### A lone command word is a question
 
 House style answers a lone command word with that command's documentation,
-exit 0. The rule catches an incomplete line, a command typed without the
-argument it operates on. Neither command here takes an argument. `run` alone
-and `version` alone are complete lines, so both act.
+exit 0, and `run` answers that way. Its docstring carries the mode axis, which
+is what a reader needs before typing anything real.
 
-That is the only divergence, and it costs nothing. What a per-command
-docstring would have carried is the flag list, which the banner already
-prints.
+`version` looks like a divergence and is not. It takes nothing and it has no
+mode, so `version` alone is a complete line, and its answer is documentation
+whichever rule you reach for.
 
 ### `version` and `--version`
 
@@ -105,15 +146,32 @@ so nothing fails on its own when the surface moves.
 ### Exit codes
 
 0 covers success, a run skipped because the PDF is unchanged, and
-documentation, which is the banner and both version spellings. 1 is
-weather-forecast's own error: a stray token, a missing environment variable,
-or a pipeline failure. 2 is argparse's own: an unknown command, an unknown
-flag, or a bad value. Only 0 and 1 return through `main`.
+documentation, which is the banner, the run docstring, and both version
+spellings. 1 is weather-forecast's own error: a stray token, a `run` with no
+mode flag, a missing environment variable, or a pipeline failure. 2 is
+argparse's own: an unknown command, an unknown flag, or a bad value. Only 0
+and 1 return through `main`.
+
+## The chart
+
+One URL, the JMA quick-look surface analysis:
+
+<https://www.data.jma.go.jp/yoho/data/wxchart/quick/ASAS_COLOR.pdf>
+
+The PDF holds nothing but the chart image, so page one rendered to PNG is the
+whole document. The model reads the PNG, never the PDF.
+
+Where the files land depends on how the command was installed. A pipx install
+writes to `~/.cache/weather-forecast/data/`, since a pipx user has no checkout
+to write into. Every other install writes to `./data` beside the working
+directory.
+
+Two PDFs are kept, `current.pdf` and `last.pdf`. Comparing their hashes is the
+only thing that decides whether a run has new work to do.
 
 ## Vision model
 
-`HuggingFaceTB/SmolVLM2-500M-Video-Instruct` replaces
-`llava-hf/llava-interleave-qwen-0.5b-hf`.
+The model is `HuggingFaceTB/SmolVLM2-500M-Video-Instruct`.
 
 State the bar first, because it decides everything below it. The prompt asks
 "What is this?". The run is a success if the answer describes a weather chart.
@@ -125,7 +183,6 @@ disk, measured rather than guessed from the parameter count:
 
 | model | bytes | stored as |
 | --- | --- | --- |
-| llava-interleave-qwen-0.5b-hf | 1.73 GB | fp16 |
 | SmolVLM2-500M-Video-Instruct | 2.03 GB | fp32 |
 | SmolVLM2-2.2B-Instruct | 8.99 GB | fp32 |
 
@@ -138,9 +195,7 @@ deserves its own round.
 The odd name is upstream. SmolVLM2 ships its small sizes only as
 `-Video-Instruct`. Still images are fine.
 
-The licence improves on the way through. SmolVLM2 is Apache 2.0. The outgoing
-model carried the Tongyi Qianwen Research License, which is non-commercial, so
-the restriction leaves with it.
+The licence is Apache 2.0.
 
 ### Why the prompt stays short
 
@@ -164,59 +219,87 @@ States. Fed the full render, it named the JMA. Splitting stays on for the same
 reason: turned off, the whole chart collapses to 79 tokens and the answer
 wanders off to the Pacific Ocean and repeats itself until the token cap.
 
-The pipeline already passed the full render. That is now a requirement rather
-than a coincidence, and it is written on `_generate_forecast`.
+The full render is a requirement, not a convenience, and it is written on
+`_generate_forecast`.
 
-### `num2words` is a real dependency
+### `num2words` and `torchvision` are real dependencies
 
-SmolVLM2's processor imports it and raises on `from_pretrained` without it.
-Nothing in the project imports it by name, so it is pinned in `pyproject.toml`
-alongside `docopt`, which it pulls in turn. Both are as load-bearing as
-`cryptography`, and as easy to prune by mistake.
+SmolVLM2's processor imports `num2words` and raises on `from_pretrained`
+without it. Nothing in the project imports it by name, so it is pinned in
+`pyproject.toml` alongside `docopt`, which it pulls in turn.
 
-### The prompt is built by the processor now
+`torchvision` is the same trap one level up. `processing_smolvlm.py` imports
+the video processor at module scope, and that module imports
+`torchvision.transforms.v2`. No video is ever processed here and the import
+happens anyway, so a build without `torchvision` cannot construct the
+processor at all. What it raises is `ModuleNotFoundError: Could not import
+module 'SmolVLMProcessor'`, which names the processor and not the missing
+package, so the error sends the reader to the wrong place.
 
-LLaVA's processor takes raw text, counts the literal `<image>` placeholders in
-it, and expands each one. SmolVLM2 works the other way. It splits the image
-into sub-crops first, then `apply_chat_template` emits however many image
-tokens that produced. A hand-written `<image>` cannot know the count, so the
-placeholder goes and the template builds the prompt.
+All three are as load-bearing as `cryptography`, and as easy to prune by
+mistake.
 
-Decoding follows from the same change. A chat template puts the user turn
+### The prompt is built by the processor
+
+SmolVLM2 splits the image into sub-crops first, and `apply_chat_template` then
+emits however many image tokens that produced. A hand-written `<image>`
+placeholder cannot know that count, so the template builds the prompt and no
+literal placeholder appears in the text.
+
+Decoding follows from the same fact. A chat template puts the user turn
 inside the output sequence, so decoding the whole thing hands back the prompt
 along with the answer. Only the generated tail is decoded.
 
-### `WF_VISION_MODEL` is removed
+## Salesforce
 
-The variable read as "point this at any vision model". What it actually
-selected was any model whose processor accepts raw text containing `<image>`,
-which is the LLaVA family and little else. Pointing it at SmolVLM2 produces a
-token count mismatch, not a forecast. An override that fails on the next model
-anyone would reach for is worse than no override, because it invites the
-attempt.
+The generated text is uploaded with `simple_salesforce`, a thin REST API
+client, and lands on a `Weather_Report__c` record. Nothing heavier sits in the
+way: no MuleSoft, no data loader, no middleware. One record per run does not
+need a platform behind it.
 
-The model id returns to a single constant in `generator.py`.
+### OAuth connection
 
-### The title split goes
+Authentication is Salesforce's OAuth 2.0 JWT Bearer flow. No browser, no
+redirect, and no interactive step, which is what lets an unattended run work.
+The assertion is signed with RS256, posted to the org's token endpoint, and
+the returned session is handed to `simple_salesforce`.
 
-The old prompt asked for "Title and description" and the pipeline split the
-answer on its first newline into `title` and `content`. Only `content` was ever
-published. `_publish_salesforce` passes `forecast["content"]` and nothing else,
-and the record `Name` is a fixed string set inside `upsert_report`. The split
-has been discarding the model's first line the whole time.
+The org side is set up before the first run: a connected app, a certificate,
+and the four `SF_*` environment variables carrying the username, client id,
+audience, and private key. Those variables are read from the environment and
+from nowhere else, so weather-forecast never keeps a credential of its own.
 
-So the split goes and the whole answer becomes the content. Nothing builds a
-title, because nothing ever consumed one, and the record name stays the fixed
-string it already was.
+## The log
+
+There are no log files. Progress goes to standard error, one line per stage,
+and that is the whole record of a run. It is standard error and not standard
+out, so `>` on its own catches nothing. Redirect the stream that carries it:
+
+```bash
+weather-forecast run --commit --force 2> run.log
+```
+
+A full run reads like this:
+
+```text
+2026-08-31 10:02:18,143 INFO weather_forecast.cli_run - Execution started (mode=commit, force=True)
+2026-08-31 10:02:18,143 INFO weather_forecast.orchestration.pipeline - Pipeline run started
+2026-08-31 10:02:18,362 INFO weather_forecast.orchestration.pipeline - Preparing images
+2026-08-31 10:02:20,146 INFO weather_forecast.orchestration.pipeline - Generating forecast via AI
+2026-08-31 10:03:13,968 INFO weather_forecast.orchestration.pipeline - Publishing results to Salesforce
+2026-08-31 10:03:16,821 INFO weather_forecast.orchestration.pipeline - Salesforce publish completed: record_id=a00gK00001EFOh8QaH created=False
+2026-08-31 10:03:16,821 INFO weather_forecast.orchestration.pipeline - Pipeline run completed successfully
+2026-08-31 10:03:16,829 INFO weather_forecast.cli_run - Pipeline executed successfully
+```
+
+The slow line is the model. Everything either side of it is seconds.
 
 ## Dependencies
 
-Dependencies are declared once, in `pyproject.toml`. The three requirements
-files are removed. `requirements.txt` listed the seven runtime roots unpinned,
-`requirements-dev.txt` listed the test tooling unpinned, and
-`requirements-pinned.txt` held a freeze. All three restated what
-`[project.dependencies]` already carried, and the freeze had already drifted a
-day out of step with it.
+Dependencies are declared once, in `pyproject.toml`. There are no
+requirements files. A requirements file restates what `[project.dependencies]`
+already carries, and a freeze kept beside the table drifts out of step with it
+within days.
 
 `[project.dependencies]` keeps the full pinned set, transitive entries
 included. That is a lockfile living in the dependency table, and it is
@@ -230,10 +313,9 @@ underneath you reformats the tree on its own, so it is pinned. A test runner
 does not, so it is not.
 
 The group is not a second freeze. `iniconfig`, `pluggy`, and `Pygments` reach
-an install only through pytest. They leave `[project.dependencies]` and do not
-reappear in the group, because pip resolves them. What moving the test tooling
-out buys is a `pipx` install of the command that no longer carries a test
-runner.
+an install only through pytest, so neither the table nor the group names them
+and pip resolves them. Keeping the test tooling out of the runtime table is
+what lets a `pipx` install of the command carry no test runner.
 
 Installing:
 

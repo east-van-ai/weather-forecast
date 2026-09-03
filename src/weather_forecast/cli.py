@@ -14,7 +14,8 @@
 #
 # Usage:
 #
-#    weather-forecast run [--force | --dryrun]
+#    weather-forecast run --dry-run [--force]
+#    weather-forecast run --commit [--force]
 #
 # Commands:
 #
@@ -24,14 +25,19 @@
 #
 # Options:
 #
+#    --dry-run           describe the chart and stop before Salesforce
+#    --commit            post the description and the preview image
 #    --force             run even when the PDF is unchanged
-#    --dryrun            simulate without posting to Salesforce
-#                        (not yet implemented)
 #
-# A command word on its own is a complete line and acts, since no command
-# takes an argument. Flags follow the command word, and their order among
-# themselves is free. Spell them in full: an abbreviation like `--dry` is
-# rejected, so it can never stand in for `--dryrun`.
+# run takes one of --dry-run or --commit, and neither is a default.
+# Nothing is written unless --commit is passed. Run the command with
+# nothing else after it for its own documentation:
+#
+#    weather-forecast run
+#
+# Flags follow the command word, and their order among themselves is
+# free. Spell them in full: an abbreviation like `--com` is rejected, so
+# it can never stand in for `--commit`.
 #
 # weather-forecast reads no piped input.
 #
@@ -44,7 +50,8 @@
 #    0:     success, a run skipped because the PDF is unchanged, and
 #           documentation
 #    1:     weather-forecast's own error, a stray word after a command,
-#           a missing environment variable, or a pipeline failure
+#           a run with no mode flag, a missing environment variable, or
+#           a pipeline failure
 #    2:     an unknown command, an unknown flag, or a bad value
 #
 # License: MIT
@@ -79,6 +86,12 @@ COMMANDS = {
     "version": show_version,
 }
 
+# What a lone command word answers with. `version` is absent on purpose: it
+# has no mode and takes no argument, so the word alone is a complete line.
+DOCS = {
+    "run": cli_run.__doc__,
+}
+
 
 def leading_paths(tokens):
     """Return the tokens ahead of the first flag.
@@ -111,15 +124,26 @@ def usage_error(message) -> int:
 def main():
     """Parse arguments, enforce the CLI grammar, and dispatch to a command.
 
-    A bare invocation is a question and gets the banner, exit 0. Neither
-    command takes an argument, so any bare word after the command word is a
-    stray and gets an error, exit 1. Argparse keeps the vocabulary it owns:
-    an unknown command, an unknown flag, or a bad value, exiting 2.
+    A bare invocation is a question and gets the banner, and a lone command
+    word gets that command's own documentation. Both exit 0. The test is the
+    token count, never a missing argument: once any other token is present the
+    user asked for something specific, and answering with documentation would
+    hide the mistake.
+
+    Neither command takes an argument, so any bare word after the command word
+    is a stray and gets an error, exit 1, as does a run with neither mode flag.
+    Argparse keeps the vocabulary it owns: an unknown command, an unknown flag,
+    or a bad value, exiting 2.
     """
     tokens = sys.argv[1:]
 
     if not tokens:
         print(__doc__.strip())
+        return EXIT_OK
+
+    # A command word and nothing else at all.
+    if len(tokens) == 1 and tokens[0] in DOCS:
+        print(DOCS[tokens[0]].strip())
         return EXIT_OK
 
     parser = build_parser()
@@ -128,14 +152,16 @@ def main():
     if any(extra.startswith("-") for extra in extras):
         parser.parse_args(tokens)  # argparse names the flag better, exit 2
 
-    # Neither command takes a positional, so every bare word after the
-    # command word is a stray. The slot ahead of the first flag is read the
-    # house way; argparse's leftovers catch one typed after a flag.
+    # The slot ahead of the first flag, plus argparse's leftovers.
     strays = leading_paths(tokens[1:]) or [
         extra for extra in extras if not extra.startswith("-")
     ]
     if strays:
         return usage_error(f"{args.command} takes no argument: {strays[0]!r}")
+
+    # Here rather than on the parser, so a missing mode is exit 1, not 2.
+    if args.command == "run" and not (args.dry_run or args.commit):
+        return usage_error("run takes one of --dry-run or --commit")
 
     return COMMANDS[args.command](args)
 

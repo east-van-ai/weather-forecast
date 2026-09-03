@@ -2,18 +2,17 @@
 
 Pulls a Japan Meteorological Agency (JMA) surface analysis PDF, runs it through
 a local vision model on Apple Silicon, and stores the result in Salesforce.
-No cloud AI. No GPU rental. No subscriptions. Just your Mac doing the work.
+No cloud AI. No GPU rental. No subscriptions. Just a Mac doing the work.
 
 ## What it does
 
 1. Downloads the latest JMA surface analysis PDF
 2. Converts it to PNG
-3. Feeds it to SmolVLM2 500M running locally via Hugging Face Transformers
-4. Uploads what the model says, plus a preview image, to a Salesforce
-   Developer Edition org
+3. Feeds it to SmolVLM2 500M, running locally on Hugging Face Transformers
+4. Uploads what the model says, plus a preview image, to a Salesforce org
 
-The model runs on MPS (Apple Silicon unified memory) and falls back to CPU if MPS
-is unavailable. Built and tested on an M1 MacBook Air with 8 GB RAM.
+The model runs on MPS (Apple Silicon unified memory) and falls back to CPU if
+MPS is unavailable. Built and tested on an M1 MacBook Air with 8 GB RAM.
 
 ## Requirements
 
@@ -38,22 +37,38 @@ SF_SERVER_KEY
 pipx install "git+https://github.com/east-van-ai/weather-forecast.git"
 ```
 
-That's it, no cloning, no manual `pip install`, no virtual environment to manage.
-`weather-forecast` becomes available as a standalone command right away.
+That's it, no cloning, no manual `pip install`, no virtual environment to
+manage. `weather-forecast` becomes available as a standalone command right
+away.
 
 ## Running
 
 ```bash
-weather-forecast run
+weather-forecast run --dry-run
 ```
 
-`weather-forecast` on its own prints what it can do and touches nothing.
+That downloads today's chart, describes it, and prints what it would send.
+Nothing reaches Salesforce. When the description looks right, send it:
 
-## Model License
+```bash
+weather-forecast run --commit
+```
+
+Nothing is written unless `--commit` is there. `weather-forecast` on its own
+prints what it can do and touches nothing, and so does `weather-forecast run`.
+
+## Model Licence
 
 The vision model ([SmolVLM2 500M](https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct))
 is Apache 2.0. The `-Video-Instruct` name is upstream. Still images are what
 this project feeds it.
+
+## Use of AI
+
+This project is built with Artificial Intelligence (AI), deliberately
+and in the open. Code and documentation are written in collaboration
+with remote and local AI; design decisions, code review, and final
+judgement stay human.
 
 ---
 

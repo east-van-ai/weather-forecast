@@ -228,8 +228,19 @@ pip install -e .
 Execute the weather forecast app locally.
 
 ```bash
-weather-forecast run
+weather-forecast run --dry-run
 ```
+
+That runs everything except the Salesforce write, which is what `--commit`
+does:
+
+```bash
+weather-forecast run --commit
+```
+
+One of the two is required. A dry run rotates the PDF cache like any other
+run, so a commit straight after a preview needs `--force` to get past the
+unchanged-PDF skip.
 
 If you installed with `pip install -e .` inside an activated venv, or with `pipx`,
 this command is available directly.
@@ -237,7 +248,7 @@ this command is available directly.
 Inside that venv the entry point also runs by path:
 
 ```bash
-python src/weather_forecast/cli.py run
+python src/weather_forecast/cli.py run --commit
 ```
 
 That form needs the package importable, so it works in the editable venv and

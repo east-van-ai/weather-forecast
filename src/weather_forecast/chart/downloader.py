@@ -1,14 +1,11 @@
-# =======================================================================
-# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
-# East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
-# ========================================================================
 from pathlib import Path
 import hashlib
 import urllib.request  # or requests
 
 
 class WeatherPDFDownloader:
+    """Fetch the JMA chart PDF and report whether it changed since last time."""
+
     CURRENT_PDF = "current.pdf"
     LAST_PDF = "last.pdf"
 
@@ -18,8 +15,20 @@ class WeatherPDFDownloader:
         self.current_pdf_path = self.data_path / WeatherPDFDownloader.CURRENT_PDF
         self.last_pdf_path = self.data_path / WeatherPDFDownloader.LAST_PDF
 
-    # Core: manage renames + download + compare
     def refresh_pdf(self):
+        """
+        Download the chart and report whether it differs from the last run.
+
+        `current.pdf` rotates to `last.pdf` before every download, so the pair
+        always holds the newest chart and the one before it. A download that
+        matches `last.pdf` is deleted again and `last.pdf` is returned in its
+        place, which is what makes a repeat run cost a download and nothing
+        else. The rotation happens whatever the caller intends to do with the
+        result, so a preview consumes the update it previewed.
+
+        Returns:
+            tuple: (updated, hash, path) for the PDF the pipeline should use.
+        """
         current_exists = self._exists(self.current_pdf_path)
         last_exists = self._exists(self.last_pdf_path)
 
@@ -45,10 +54,6 @@ class WeatherPDFDownloader:
         self._rename(self.current_pdf_path, self.last_pdf_path)
         self._download()
         return self._compare_and_cleanup()
-
-    # ------------------
-    # Utility Methods
-    # ------------------
 
     def _exists(self, path: Path) -> bool:
         """Check if the file exists."""

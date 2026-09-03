@@ -1,8 +1,3 @@
-# =======================================================================
-# weather-forecast -- JMA weather chart to Salesforce, no cloud required.
-# East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
-# ========================================================================
 """
 Salesforce OAuth2 (JWT Bearer) Login — No Browser, No Redirect
 
@@ -69,15 +64,11 @@ class SalesforceBaseClient:
         access_token = tokens["access_token"]
         instance_url = tokens["instance_url"]
 
-        # Create a simple_salesforce client
         self.sf = Salesforce(
             session_id=access_token,
             instance_url=instance_url,
         )
 
-    # --------------------------------------------------
-    # Public Helpers
-    # --------------------------------------------------
     def query(self, soql: str):
         """Run a SOQL query and return list of records."""
         result = self.sf.query(soql)

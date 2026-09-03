@@ -8,13 +8,22 @@
 #
 # Usage:
 #
-#    weather-forecast run [--force | --dryrun]
+#    weather-forecast run --dry-run [--force]
+#    weather-forecast run --commit [--force]
 #
 # Options:
 #
+#    --dry-run           describe the chart and stop before Salesforce
+#    --commit            post the description and the preview image
 #    --force             run even when the PDF is unchanged
-#    --dryrun            simulate without posting to Salesforce
-#                        (not yet implemented)
+#
+# One of --dry-run or --commit is required, and neither is a default.
+# Nothing reaches Salesforce without --commit.
+#
+# A dry run consumes the update it previewed. The download rotates
+# current.pdf to last.pdf either way, so the chart that counted as new
+# during the preview is the one the next run finds unchanged. Commit
+# after a preview with --force.
 #
 # Environment:
 #
@@ -58,24 +67,24 @@ def run(args) -> int:
     Logging is configured here rather than in main(), so `version` answers
     with one line and no log preamble above it. A missing environment
     variable is a readiness failure: it reports and exits 1 with no usage
-    line, since the command line itself was fine.
+    line, since the command line itself was fine. A dry run is held to the
+    same check, so a preview fails on the same missing variable a commit
+    would.
     """
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s - %(message)s",
     )
 
-    logger.info("Execution started (force=%s, dryrun=%s)", args.force, args.dryrun)
-
-    if args.dryrun:
-        logger.info("--dryrun enabled (logic not yet implemented)")
+    mode = "commit" if args.commit else "dry-run"
+    logger.info("Execution started (mode=%s, force=%s)", mode, args.force)
 
     config, missing = load_env_values()
     if missing:
         logger.error(f"Missing required env vars: {missing}")
         return EXIT_ERROR
 
-    pipeline = WeatherPipeline(force=args.force, config=config)
+    pipeline = WeatherPipeline(force=args.force, dry_run=args.dry_run, config=config)
 
     try:
         result = pipeline.run()

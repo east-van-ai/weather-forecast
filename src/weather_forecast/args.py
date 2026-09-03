@@ -12,7 +12,10 @@ EXIT_ARGPARSE = 2
 
 PROG = "weather-forecast"
 
-USAGE = "weather-forecast run [--force | --dryrun] | weather-forecast version"
+USAGE = (
+    "weather-forecast run <--dry-run | --commit> [--force]"
+    " | weather-forecast version"
+)
 
 
 def installed_version() -> str:
@@ -46,8 +49,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     `--version` is defined on the top-level parser and nowhere else, so
     asking a command for the version is an unknown flag, exit 2. Abbreviation
-    is off everywhere: `--dry` must never stand in for `--dryrun`, and
+    is off everywhere: `--com` must never stand in for `--commit`, and
     add_parser() inherits nothing, so each subparser repeats the keyword.
+
+    The mode pair is mutually exclusive but not required here. Argparse would
+    exit 2 on a missing mode, and that is the code for a line it could not
+    read, so `main` checks the pair by hand instead. See DESIGN.md, "Two axes,
+    a command and a mode".
     """
     parser = argparse.ArgumentParser(
         prog=PROG,
@@ -67,18 +75,24 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser = subparsers.add_parser(
         "run", help=run_help, description=run_help, allow_abbrev=False
     )
-    group = run_parser.add_mutually_exclusive_group()
-    group.add_argument(
+    mode = run_parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--dry-run",
+        action="store_true",
+        default=False,
+        help="Describe the chart and stop before Salesforce.",
+    )
+    mode.add_argument(
+        "--commit",
+        action="store_true",
+        default=False,
+        help="Post the description and preview image to Salesforce.",
+    )
+    run_parser.add_argument(
         "--force",
         action="store_true",
         default=False,
         help="Run even when the PDF is unchanged; useful for demos.",
-    )
-    group.add_argument(
-        "--dryrun",
-        action="store_true",
-        default=False,
-        help="Simulate the run without posting to Salesforce.",
     )
 
     version_help = "Print the installed version and exit."

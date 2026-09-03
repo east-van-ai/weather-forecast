@@ -7,6 +7,27 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-03
+
+### Added
+
+- `weather-forecast run --commit`, the flag that makes a run real. One of
+  `--commit` or `--dry-run` is required, and neither is a default
+- `--dry-run` has a body now. It downloads, renders, and describes the chart,
+  logs what would be written, and stops before Salesforce
+
+### Changed
+
+- `--dryrun` is respelled `--dry-run`. The old spelling is an unknown flag
+- `--force` leaves the mutually exclusive pair and rides either mode
+- `weather-forecast run` on its own prints the run command's documentation and
+  exits 0 rather than acting
+
+### Removed
+
+- The `torchaudio` and `python-dotenv` pins. Nothing in the project or its
+  dependency graph reaches either one
+
 ## [0.10.0] - 2026-08-31
 
 ### Added
