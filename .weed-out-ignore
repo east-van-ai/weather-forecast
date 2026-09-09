@@ -1,18 +1,19 @@
-# for orphan release on GitHub
+# weed-out <https://github.com/east-van-ai/weed-out>
 
 .git/
 .github/**/*.yaml
 .gitignore
 .weed-out-ignore
 data/
+docs/CLI.md
+docs/DESIGN.md
+docs/SETUP.md
 logs/
 salesforce/
 src/**/*.py
 tests/*.py
 CHANGELOG.md
-DESIGN.md
 LICENSE
 pyproject.toml
 README.md
-SETUP.md
 sfdx-project.json

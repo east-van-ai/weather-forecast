@@ -1,10 +1,12 @@
 """
-# ~~~ ~~~ ~~~ ~~~ weather-forecast run ~~~ ~~~ ~~~ ~~~
+# ~~~ ~~~ ~~~ ~~~ ~~~ ~~~ weather-forecast run ~~~ ~~~ ~~~ ~~~ ~~~ ~~~
 #
-# Download the latest JMA surface analysis PDF, render page 1, describe it
-# with a local vision model, and upsert the description plus a preview image
-# into Salesforce. A PDF whose hash matches the last run is skipped, so a
-# repeat run costs a download and nothing else.
+# https://github.com/east-van-ai/weather-forecast
+#
+# Download the latest JMA surface analysis PDF, render page 1, describe it with a
+# local vision-language model, and upsert the description plus a preview image
+# into Salesforce. A PDF whose hash matches the last run is skipped, so a repeat
+# run costs a download and nothing else.
 #
 # Usage:
 #
@@ -13,17 +15,20 @@
 #
 # Options:
 #
-#    --dry-run           describe the chart and stop before Salesforce
+#    --dry-run           check the SF_* variables, describe the chart, and stop
+#                        before Salesforce. Nothing is written.
 #    --commit            post the description and the preview image
 #    --force             run even when the PDF is unchanged
 #
-# One of --dry-run or --commit is required, and neither is a default.
-# Nothing reaches Salesforce without --commit.
+# One of --dry-run or --commit is required, and neither is a default. Nothing
+# reaches Salesforce without --commit.
 #
-# A dry run consumes the update it previewed. The download rotates
-# current.pdf to last.pdf either way, so the chart that counted as new
-# during the preview is the one the next run finds unchanged. Commit
-# after a preview with --force.
+# The variable check is for presence alone. A dry run never authenticates, so a
+# clean preview says the four SF_* variables are set, not that they work.
+#
+# A dry run consumes the update it previewed. The download rotates current.pdf to
+# last.pdf either way, so the chart that counted as new during the preview is the
+# one the next run finds unchanged. Commit after a preview with --force.
 #
 # Environment:
 #

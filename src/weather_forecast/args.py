@@ -4,8 +4,7 @@ import argparse
 from importlib import metadata
 
 # Argparse hardcodes 2 in `ArgumentParser.error()`, which calls `sys.exit`
-# itself, so EXIT_ARGPARSE is never returned, only asserted against. See
-# DESIGN.md, "Exit codes", for what the three cover.
+# itself, so EXIT_ARGPARSE is never returned, only asserted against.
 EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_ARGPARSE = 2
@@ -54,8 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     The mode pair is mutually exclusive but not required here. Argparse would
     exit 2 on a missing mode, and that is the code for a line it could not
-    read, so `main` checks the pair by hand instead. See DESIGN.md, "Two axes,
-    a command and a mode".
+    read, so `main` checks the pair by hand instead.
     """
     parser = argparse.ArgumentParser(
         prog=PROG,

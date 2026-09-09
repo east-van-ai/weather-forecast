@@ -107,11 +107,13 @@ Confirm PyTorch can see your Apple Silicon GPU:
 python -c "import torch; print(torch.backends.mps.is_available())"
 ```
 
-This should print `True`. The pipeline detects MPS automatically at runtime and falls back to CPU if unavailable.
+This should print `True`. The pipeline detects MPS automatically at runtime and
+falls back to CPU if unavailable.
 
 ## 5. Hugging Face and the Vision Model
 
-This project uses **SmolVLM2 500M** running locally via Hugging Face. It's publicly available, so you don't need a Hugging Face account or authentication token to use it.
+This project uses **SmolVLM2 500M** running locally via Hugging Face. It's publicly
+available, so you don't need a Hugging Face account or authentication token to use it.
 
 Run the following to download the model:
 
@@ -131,7 +133,9 @@ The model weights (~2 GB) are downloaded automatically on first run and cached a
 ~/.cache/huggingface/hub/models--HuggingFaceTB--SmolVLM2-500M-Video-Instruct
 ```
 
-Since the cache is shared across all projects on your machine, you only need to do this once. Make sure you have a stable internet connection and enough disk space before you start.
+Since the cache is shared across all projects on your machine, you only need to do
+this once. Make sure you have a stable internet connection and enough disk space
+before you start.
 
 ## 6. Salesforce CLI and npm
 
@@ -150,7 +154,9 @@ You should see something similar to
 
 `@salesforce/cli/2.x.x darwin-arm64 node-vXX.x.x`
 
-Then authenticate to your Salesforce Developer Edition org and check if it is properly authenticated. Make sure to use `--alias my-weather-forecast-de-org`; this alias is used in the deploy script in the next step.
+Then authenticate to your Salesforce Developer Edition org and check if it is properly
+authenticated. Make sure to use `--alias my-weather-forecast-de-org`; this alias is
+used in the deploy script in the next step.
 
 ```bash
 sf org login web --alias my-weather-forecast-de-org
@@ -191,7 +197,8 @@ Log in to your Developer Edition org and confirm:
 
 ## 9. Setting Environment Variables
 
-Secrets for Salesforce connection with OAuth JWT options, assuming a `server.key` file is already generated.
+Secrets for Salesforce connection with OAuth JWT options, assuming a `server.key`
+file is already generated.
 
 ```bash
 # Enable automatic export of all variables

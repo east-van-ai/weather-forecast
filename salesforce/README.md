@@ -2,9 +2,10 @@
 
 This directory contains Salesforce metadata used by the weather pipeline.
 
-## Weather Report – Architecture Intent (v0.3)
+## Weather Report - Architecture Intent (v0.3)
 
-- Deprecated fields remain in the schema but are clearly marked and not used by the current pipeline
+- Deprecated fields remain in the schema but are clearly marked and not used by
+the current pipeline
 
 ### Data Layer
 

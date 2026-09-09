@@ -1,16 +1,16 @@
 """
 # ==============================================
 # East Van AI -- AI for the rest of us!
-# https://github.com/east-van-ai
+# https://github.com/east-van-ai/weather-forecast
 # contact: east-van-ai@proton.me
 # ==============================================
 #
-# ~~~ ~~~ ~~~ ~~~ weather-forecast ~~~ ~~~ ~~~ ~~~
+# ~~~ ~~~ ~~~ ~~~ ~~~ ~~~ ~~~ weather-forecast ~~~ ~~~ ~~~ ~~~ ~~~ ~~~ ~~~
 #
-# JMA weather chart to Salesforce, no cloud required.
-# Downloads the JMA surface analysis PDF, runs it through a local
-# vision-language model (SmolVLM2 500M) on Apple Silicon, and upserts
-# the description + preview image into a Salesforce org.
+# A local ETL pipeline: JMA weather chart in, Salesforce record out, no cloud.
+# Extract the JMA surface analysis PDF, transform it with a vision-language
+# model (SmolVLM2 500M) on Apple Silicon, and load the description plus a
+# preview image into a Salesforce org.
 #
 # Usage:
 #
@@ -19,9 +19,8 @@
 #
 # Commands:
 #
-#    run                 download the chart, describe it, and upsert it
-#                        to Salesforce. A PDF unchanged since the last
-#                        run is skipped.
+#    run                 download the chart, describe it, and upsert it to
+#                        Salesforce. A PDF unchanged since the last run is skipped.
 #
 # Options:
 #
@@ -29,15 +28,15 @@
 #    --commit            post the description and the preview image
 #    --force             run even when the PDF is unchanged
 #
-# run takes one of --dry-run or --commit, and neither is a default.
-# Nothing is written unless --commit is passed. Run the command with
-# nothing else after it for its own documentation:
+# run takes one of --dry-run or --commit, and neither is a default. Nothing is
+# written unless --commit is passed. Run the command with nothing else after it
+# for its own documentation:
 #
 #    weather-forecast run
 #
-# Flags follow the command word, and their order among themselves is
-# free. Spell them in full: an abbreviation like `--com` is rejected, so
-# it can never stand in for `--commit`.
+# Flags follow the command word, and their order among themselves is free. Spell
+# them in full: an abbreviation like `--com` is rejected, so it can never stand
+# in for `--commit`.
 #
 # weather-forecast reads no piped input.
 #
@@ -47,11 +46,9 @@
 #
 # Exit codes:
 #
-#    0:     success, a run skipped because the PDF is unchanged, and
-#           documentation
-#    1:     weather-forecast's own error, a stray word after a command,
-#           a run with no mode flag, a missing environment variable, or
-#           a pipeline failure
+#    0:     success, a run skipped because the PDF is unchanged, and documentation
+#    1:     weather-forecast's own error, a stray word after a command, a run with
+#           no mode flag, a missing environment variable, or a pipeline failure
 #    2:     an unknown command, an unknown flag, or a bad value
 #
 # License: MIT
@@ -99,7 +96,7 @@ def leading_paths(tokens):
     The documented grammar puts every positional before every flag, so the
     slot is read off the front of the command line. What argparse resolved
     from anywhere else is discarded, since how much it tolerates depends on
-    the interpreter. See DESIGN.md, "Positions are decided, not inferred".
+    the interpreter.
     """
     paths = []
     for token in tokens:
