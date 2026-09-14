@@ -1,5 +1,5 @@
 """
-Salesforce OAuth2 (JWT Bearer) Login — No Browser, No Redirect
+Salesforce OAuth2 (JWT Bearer) Login -- No Browser, No Redirect
 
 Flow:
 1. Build a signed JSON Web Token(JWT) assertion using your private key.
@@ -9,6 +9,7 @@ Flow:
 """
 
 import time
+
 import jwt
 import requests
 from simple_salesforce import Salesforce
@@ -17,7 +18,7 @@ from simple_salesforce import Salesforce
 class SalesforceBaseClient:
     """Base Salesforce client using JWT Bearer OAuth2 flow."""
 
-    def __init__(self, config: dict = {}):
+    def __init__(self, config: dict):
         self.client_id = config["client_id"]
         self.username = config["username"]
         self.audience = config["audience"]

@@ -1,4 +1,5 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from weather_forecast.chart.processors.image_tools import resize_png
 
 

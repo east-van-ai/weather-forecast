@@ -1,6 +1,7 @@
 import logging
 import sys
 from pathlib import Path
+
 from weather_forecast.chart.downloader import WeatherPDFDownloader
 from weather_forecast.chart.processors.image_tools import resize_png
 from weather_forecast.chart.processors.pdf_tools import pdf_to_png
@@ -48,11 +49,13 @@ class WeatherPipeline:
     Use with caution.
     """
 
-    def __init__(self, force: bool = False, dry_run: bool = False, config: dict = {}):
+    def __init__(
+        self, force: bool = False, dry_run: bool = False, config: dict | None = None
+    ):
         """Initialize the pipeline execution mode."""
         self.force = force
         self.dry_run = dry_run
-        self.config = config
+        self.config = config or {}
 
     def run(self) -> bool:
         """
@@ -145,10 +148,7 @@ class WeatherPipeline:
         Returns:
             bool: True if processing should continue
         """
-        if not chart.get("updated", False):
-            return False
-
-        return True
+        return bool(chart.get("updated", False))
 
     def _prepare_images(self, chart: dict) -> dict:
         """

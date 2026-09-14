@@ -1,4 +1,5 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from weather_forecast.chart.processors.pdf_tools import pdf_to_png
 
 

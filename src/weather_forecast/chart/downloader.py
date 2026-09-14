@@ -1,6 +1,6 @@
-from pathlib import Path
 import hashlib
 import urllib.request  # or requests
+from pathlib import Path
 
 
 class WeatherPDFDownloader:

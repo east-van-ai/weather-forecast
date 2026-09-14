@@ -1,5 +1,6 @@
 from pathlib import Path
 from unittest.mock import MagicMock
+
 from weather_forecast.orchestration.pipeline import WeatherPipeline
 
 

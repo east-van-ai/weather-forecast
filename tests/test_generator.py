@@ -1,7 +1,8 @@
-import torch
-import pytest
-from PIL import Image
 from unittest.mock import MagicMock, patch
+
+import pytest
+import torch
+from PIL import Image
 
 from weather_forecast.forecast.generator import WeatherVision
 

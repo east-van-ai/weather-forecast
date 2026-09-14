@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from transformers import AutoProcessor, AutoModelForImageTextToText
 import torch
+from transformers import AutoModelForImageTextToText, AutoProcessor
 
 
 class WeatherVision:
@@ -14,7 +14,7 @@ class WeatherVision:
 
     DEFAULT_MODEL_NAME = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
 
-    def __init__(self, model_name: str = None):
+    def __init__(self, model_name: str | None = None):
         self.model_name = model_name or self.DEFAULT_MODEL_NAME
 
         if torch.backends.mps.is_available():

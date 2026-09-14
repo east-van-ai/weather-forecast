@@ -93,7 +93,7 @@ def run(args) -> int:
 
     try:
         result = pipeline.run()
-    except Exception:
+    except Exception:  # noqa: BLE001
         logger.error("Pipeline execution failed with an unexpected error")
         return EXIT_ERROR
 

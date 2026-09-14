@@ -32,3 +32,6 @@ server.crt
 # markdownlint
 .markdownlint.json
 .markdownlintignore
+
+# cleanup script output #
+scripts/cleanup/data/

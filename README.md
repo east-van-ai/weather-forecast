@@ -47,8 +47,8 @@ pipx install "git+https://github.com/east-van-ai/weather-forecast.git"
 That's it, no cloning, no manual `pip install`, no virtual environment to manage.
 `weather-forecast` becomes available as a standalone command right away.
 
-The model downloads itself on the first run, straight from Hugging Face. No
-account and no token are needed for it.
+The model downloads itself on the first run, straight from Hugging Face. No account
+and no token are needed for it.
 
 ## Configuration
 
@@ -56,32 +56,14 @@ All secrets are read from environment variables. No `.env` file is required,
 and the application never reads one. Set these four before running:
 
 ```bash
-set -a
-SF_USERNAME="agentforce@example.com"
-SF_CLIENT_ID="3MVG8szVa2RxsrPnFaxLwCg..."
-SF_AUDIENCE="https://login.salesforce.com"
-SF_SERVER_KEY="$(cat "/path/to/server.key")"
-set +a
+export SF_USERNAME="agentforce@example.com"
+export SF_CLIENT_ID="<connected app consumer key>"
+export SF_AUDIENCE="https://login.salesforce.com"
+export SF_SERVER_KEY="$(cat "/path/to/server.key")"
 ```
 
-`SF_USERNAME` is the Salesforce user the run acts as. `SF_CLIENT_ID` is the
-connected app's consumer key, a long string that starts `3MVG`. `SF_AUDIENCE`
-is the login host. `SF_SERVER_KEY` is the private key that signs the JWT, in
-PEM form, header and footer included:
-
-```text
------BEGIN PRIVATE KEY-----
-MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCxMVFkLosHn18M
-... more lines of base64 ...
------END PRIVATE KEY-----
-```
-
-Read that one from its file rather than pasting it inline. The line breaks are
-part of the key. A key whose newlines have collapsed into a literal `\n` fails
-with `InvalidKeyError: Could not parse the provided public key`, and that
-message says public where it means private, so it sends the reader looking in
-the wrong place.
-
+`SF_SERVER_KEY` holds the PEM private key that signs the JWT. Its line breaks
+are part of the key, so read it from the file rather than pasting it inline.
 weather-forecast reads all four from the environment and keeps no credential
 of its own.
 
@@ -108,8 +90,8 @@ Nothing is written unless `--commit` is there. The two flags are the run's mode,
 are mutually exclusive, and one of them is required. A `run` carrying neither is an
 error rather than a guess.
 
-Bare `weather-forecast` prints what it can do and touches nothing. So does a
-bare `weather-forecast run`, which answers with its own documentation.
+Bare `weather-forecast` prints what it can do and touches nothing. So does a bare
+`weather-forecast run`, which answers with its own documentation.
 
 ## When the chart has not changed
 
@@ -129,8 +111,8 @@ takes `--force`.
 
 ## What a run prints
 
-There are no log files. Progress goes to standard error, one line per stage,
-and that is the whole record of a run:
+There are no log files. Progress goes to standard error, one line per stage, and
+that is the whole record of a run:
 
 ```text
 2026-08-31 10:02:18,143 INFO weather_forecast.cli_run - Execution started (mode=commit, force=True)
@@ -145,7 +127,7 @@ and that is the whole record of a run:
 
 The slow line is the model. Everything either side of it is seconds.
 
-## Model Licence
+## About the model
 
 The vision model ([SmolVLM2 500M](https://huggingface.co/HuggingFaceTB/SmolVLM2-500M-Video-Instruct))
 is Apache 2.0. The `-Video-Instruct` name is upstream. Still images are what
@@ -157,16 +139,14 @@ this project feeds it.
   the exit codes, and what each command prints.
 - [docs/DESIGN.md](docs/DESIGN.md) holds the model and the reasoning under the
   decisions, including why the prompt is one short question.
-- [docs/SETUP.md](docs/SETUP.md) walks through the Salesforce org, the
-  connected app, and the certificate.
+- [docs/SETUP.md](docs/SETUP.md) walks through the Salesforce org, the connected
+  app, and the certificate.
 - [CHANGELOG.md](CHANGELOG.md) records what shipped in each version.
 
 ## Use of AI
 
-This project is built with Artificial Intelligence (AI), deliberately
-and in the open. Code and documentation are written in collaboration
-with remote and local AI; design decisions, code review, and final
-judgement stay human.
+Code and documentation are written in collaboration with remote and local AI; design
+decisions, code review, semantic and auditory review, and final judgement stay human.
 
 ---
 

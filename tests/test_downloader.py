@@ -21,7 +21,7 @@ def test_case_A(tmp_path):
     # tmp_path is a pytest fixture providing a temporary directory
     dl = DummyDL(tmp_path, [b"PDF-A"])
 
-    changed, pdf_hash, pdf_path = dl.refresh_pdf()
+    changed, _pdf_hash, _pdf_path = dl.refresh_pdf()
 
     assert changed is True
     assert dl._exists(dl.current_pdf_path)
@@ -35,7 +35,7 @@ def test_case_B(tmp_path):
     current_pdf_path.write_bytes(b"OLD")
 
     dl = DummyDL(tmp_path, [b"NEW"])
-    changed, pdf_hash, pdf_path = dl.refresh_pdf()
+    changed, _pdf_hash, _pdf_path = dl.refresh_pdf()
 
     # After rename: last.pdf=OLD, current.pdf=NEW
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"OLD"
@@ -49,7 +49,7 @@ def test_case_C_no_change(tmp_path):
     last.write_bytes(b"SAME")
 
     dl = DummyDL(tmp_path, [b"SAME"])
-    changed, pdf_hash, pdf_path = dl.refresh_pdf()
+    changed, _pdf_hash, _pdf_path = dl.refresh_pdf()
 
     assert changed is False
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"SAME"
@@ -62,7 +62,7 @@ def test_case_C_change(tmp_path):
     last.write_bytes(b"OLD")
 
     dl = DummyDL(tmp_path, [b"NEW"])
-    changed, pdf_hash, pdf_path = dl.refresh_pdf()
+    changed, _pdf_hash, _pdf_path = dl.refresh_pdf()
 
     assert changed is True
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"OLD"
@@ -77,7 +77,7 @@ def test_case_D_no_change(tmp_path):
     current.write_bytes(b"CURRENT")
 
     dl = DummyDL(tmp_path, [b"CURRENT"])
-    changed, pdf_hash, pdf_path = dl.refresh_pdf()
+    changed, _pdf_hash, _pdf_path = dl.refresh_pdf()
 
     assert changed is False
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"CURRENT"
@@ -92,7 +92,7 @@ def test_case_D_change(tmp_path):
     current.write_bytes(b"CURRENT")
 
     dl = DummyDL(tmp_path, [b"NEWER"])
-    changed, pdf_hash, pdf_path = dl.refresh_pdf()
+    changed, _pdf_hash, _pdf_path = dl.refresh_pdf()
 
     assert changed is True
     assert (tmp_path / WeatherPDFDownloader.LAST_PDF).read_bytes() == b"CURRENT"

@@ -7,6 +7,20 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-09-14
+
+### Added
+
+- `scripts/cron-job.sh` and `scripts/setup-env-vars.sh`, a template for an hourly
+  scheduled run
+- `scripts/cleanup/`, which hard-deletes old uploaded files to free a Developer
+  Edition org's file storage
+
+### Changed
+
+- README and `docs/SETUP.md` set the `SF_*` variables with `export` in place of
+  `set -a`
+
 ## [0.11.1] - 2026-09-09
 
 ### Changed

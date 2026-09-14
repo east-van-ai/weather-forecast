@@ -16,4 +16,5 @@ CHANGELOG.md
 LICENSE
 pyproject.toml
 README.md
+scripts/**/*.sh
 sfdx-project.json

@@ -71,7 +71,7 @@ def test_installed_version_without_metadata(monkeypatch):
 
 
 def test_load_env_values_all_present(mock_env):
-    result, missing = load_env_values()
+    result, _missing = load_env_values()
     assert result["client_id"] == "test-client-id"
     assert result["username"] == "test@example.com"
     assert result["audience"] == "https://login.salesforce.com"
@@ -80,12 +80,12 @@ def test_load_env_values_all_present(mock_env):
 
 def test_load_env_values_missing_client_id(monkeypatch):
     monkeypatch.delenv("SF_CLIENT_ID", raising=False)
-    result, missing = load_env_values()
+    result, _missing = load_env_values()
     assert result["client_id"] is None
 
 
 def test_load_env_values_missing_all(monkeypatch):
     for key in ["SF_CLIENT_ID", "SF_USERNAME", "SF_AUDIENCE", "SF_SERVER_KEY"]:
         monkeypatch.delenv(key, raising=False)
-    result, missing = load_env_values()
+    result, _missing = load_env_values()
     assert all(v is None for v in result.values())

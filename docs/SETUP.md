@@ -30,7 +30,7 @@ your Mac, ending with a `pipx` install and a run by hand.
 > This AI inference runs locally on Apple Silicon.
 > No external AI APIs or GPU rentals required.
 
-## 1. Homebrew Dependencies
+## Homebrew Dependencies
 
 If you don't have Homebrew installed:
 
@@ -47,9 +47,9 @@ brew install git pyenv poppler node pipx
 `pyenv` manages your Python version.
 `poppler` is required by `pdf2image` for PDF rendering.
 `node` is required for the Salesforce CLI.
-`pipx` installs the tool itself in an isolated environment (see step 10).
+`pipx` installs the tool itself in an isolated environment (see Install).
 
-## 2. Clone the Repo
+## Clone the Repo
 
 ```bash
 git clone https://github.com/east-van-ai/weather-forecast.git
@@ -58,7 +58,7 @@ git clone https://github.com/east-van-ai/weather-forecast.git
 cd weather-forecast
 ```
 
-## 3. Python via pyenv
+## Python via pyenv
 
 Install Python 3.14:
 
@@ -88,10 +88,10 @@ Verify:
 python --version
 ```
 
-## 4. Python Environment
+## Python Environment
 
 > This step is only needed if you're developing on the project itself. If
-> you're just running the tool, skip ahead to step 10 and install with `pipx`.
+> you're just running the tool, skip ahead to Install and use `pipx`.
 
 ```bash
 python -m venv venv
@@ -110,7 +110,7 @@ python -c "import torch; print(torch.backends.mps.is_available())"
 This should print `True`. The pipeline detects MPS automatically at runtime and
 falls back to CPU if unavailable.
 
-## 5. Hugging Face and the Vision Model
+## Hugging Face and the Vision Model
 
 This project uses **SmolVLM2 500M** running locally via Hugging Face. It's publicly
 available, so you don't need a Hugging Face account or authentication token to use it.
@@ -137,7 +137,7 @@ Since the cache is shared across all projects on your machine, you only need to 
 this once. Make sure you have a stable internet connection and enough disk space
 before you start.
 
-## 6. Salesforce CLI and npm
+## Salesforce CLI and npm
 
 > **Note:** Salesforce CLI is distributed via npm only.
 > Do not install it via Homebrew.
@@ -154,9 +154,9 @@ You should see something similar to
 
 `@salesforce/cli/2.x.x darwin-arm64 node-vXX.x.x`
 
-Then authenticate to your Salesforce Developer Edition org and check if it is properly
-authenticated. Make sure to use `--alias my-weather-forecast-de-org`; this alias is
-used in the deploy script in the next step.
+Then authenticate to your Salesforce Developer Edition org and check if it is
+properly authenticated. Make sure to use `--alias my-weather-forecast-de-org`; the
+deploy command in the next step names it.
 
 ```bash
 sf org login web --alias my-weather-forecast-de-org
@@ -172,7 +172,7 @@ sf list org
 └──┴────────────────────────────┴─────────────────────────┴────────────────────┴───────────┘
 ```
 
-## 7. Salesforce Custom Object
+## Salesforce Custom Object
 
 Run the Salesforce deploy
 
@@ -184,53 +184,42 @@ sf project deploy start --manifest salesforce/manifest/package.xml --target-org=
 | --- | --- | --- |
 | `Forecast__c` | Long Text Area | AI-generated forecast text |
 | `Chart_Image_Id__c` | Text | Deprecated (retained for reference only) |
-| `PDF_Hash__c` | Text | PDF hash for deduplication |
-| `PDF_Hash_4_4__c` | Text | Short hash variant for deduplication |
-| `Import_Timestamp__c` | Date/Time | When the record was imported |
+| `PDF_Hash__c` | Text (64), external ID, unique | SHA-256 of the PDF, upsert key |
+| `PDF_Hash_4_4__c` | Formula (Text) | First and last four characters of the hash |
 
-## 8. Verify in Salesforce
-
-Log in to your Developer Edition org and confirm:
-
-- The Weather_Report__c object exists under Setup > Object Manager
-- At least one record has been created with a forecast in the Forecast__c field
-
-## 9. Setting Environment Variables
+## Setting Environment Variables
 
 Secrets for Salesforce connection with OAuth JWT options, assuming a `server.key`
 file is already generated.
 
 ```bash
-# Enable automatic export of all variables
-set -a
-
-SF_USERNAME="my.username@example.com"
-SF_CLIENT_ID="ThisIsMyClientID222..."
-SF_AUDIENCE="https://login.salesforce.com"
-SF_SERVER_KEY="$(cat "/path/to/server.key")"
-
-# Disable automatic export
-set +a
+export SF_USERNAME="my.username@example.com"
+export SF_CLIENT_ID="ThisIsMyClientID222..."
+export SF_AUDIENCE="https://login.salesforce.com"
+export SF_SERVER_KEY="$(cat "/path/to/server.key")"
 ```
 
-## 10. Install
+A key whose newlines have collapsed into a literal `\n` fails with
+`InvalidKeyError: Could not parse the provided public key`. That message says
+public where it means private, so it sends you looking in the wrong place.
+
+## Install
 
 ```bash
 pipx install "git+https://github.com/east-van-ai/weather-forecast.git"
 ```
 
 This registers a `weather-forecast` command in its own isolated environment.
-Pin to the `pipx` release branch rather than installing from `main`, since
-`main` can move between releases.
+It installs the latest release.
 
-Developing on the project itself instead? Use the editable install from
-step 4 instead of this:
+Developing on the project itself instead? Use the editable install under Python
+Environment instead of this:
 
 ```bash
 pip install -e .
 ```
 
-## 11. Execute Locally
+## Execute Locally
 
 Execute the weather forecast app locally.
 
@@ -238,16 +227,17 @@ Execute the weather forecast app locally.
 weather-forecast run --dry-run
 ```
 
-That runs everything except the Salesforce write, which is what `--commit`
-does:
+That runs everything except the Salesforce write, which is what `--commit` does:
 
 ```bash
 weather-forecast run --commit
 ```
 
-One of the two is required. A dry run rotates the PDF cache like any other
-run, so a commit straight after a preview needs `--force` to get past the
-unchanged-PDF skip.
+One of the two is required. A dry run rotates the PDF cache like any other run, so a
+commit straight after a preview needs `--force` to get past the unchanged-PDF skip.
+
+A pipx install keeps the downloaded chart and rendered images in
+`~/.cache/weather-forecast/data/`.
 
 If you installed with `pip install -e .` inside an activated venv, or with `pipx`,
 this command is available directly.
@@ -260,6 +250,13 @@ python src/weather_forecast/cli.py run --commit
 
 That form needs the package importable, so it works in the editable venv and
 nowhere else.
+
+## Verify in Salesforce
+
+After a `--commit` run, log in to your Developer Edition org and confirm:
+
+- The Weather_Report__c object exists under Setup > Object Manager
+- At least one record has been created with a forecast in the Forecast__c field
 
 ---
 
