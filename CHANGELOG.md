@@ -7,6 +7,13 @@ and the versioning uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.11.3] - 2026-09-15
+
+### Added
+
+- GitHub Actions CI: ruff, black, and ShellCheck on Ubuntu, and the test suite on
+  macOS
+
 ## [0.11.2] - 2026-09-14
 
 ### Added

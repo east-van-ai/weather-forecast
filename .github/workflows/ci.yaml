@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install dev dependencies
+        # the pip upgrade is load-bearing: --group needs pip 25.1 or newer
+        # no project install, so torch never downloads here
+        run: |
+          python -m pip install --upgrade pip
+          pip install --group dev
+
+      - name: Lint
+        run: |
+          ruff check --isolated src tests
+          black --check src tests
+
+      - name: ShellCheck
+        # preinstalled on the Ubuntu runner image; the log records its version
+        run: |
+          shellcheck --version
+          find scripts -name "*.sh" -exec shellcheck -x -P SCRIPTDIR {} +
+
+  test:
+    # the torch install fills a stock Ubuntu runner's disk; macOS arm64 fits
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install package and dev dependencies
+        # the pip upgrade is load-bearing: --group needs pip 25.1 or newer
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . --group dev
+
+      - name: Run tests
+        run: pytest

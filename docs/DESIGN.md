@@ -287,6 +287,18 @@ PyJWT's `crypto` extra, which RS256 signing needs, and the JWT handshake signs
 with RS256. Nothing imports it by name, so it survives only if whoever prunes
 this table knows why it is there.
 
+### CI
+
+The workflow runs two jobs. Lint installs the `dev` group alone, with no
+project, so ruff, black, and ShellCheck run on Ubuntu without torch. That
+works because the group sits outside the runtime table.
+
+The test suite runs on `macos-latest`. On Linux x86_64 the torch 2.9.1 wheel
+is about 900 MB and pulls in 15 `nvidia-*` CUDA packages, over 3 GB more. A
+stock `ubuntu-latest` runner fails that install with `No space left on device`.
+On arm64 macOS the wheel is 74 MB with no CUDA packages, and arm64 macOS is
+what the tool targets. The whole test job takes about a minute there.
+
 ## Use of AI
 
 Both the use of AI and its disclosure are deliberate. Code and documentation in

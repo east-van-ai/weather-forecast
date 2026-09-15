@@ -1,6 +1,6 @@
 [project]
 name = "weather-forecast"
-version = "0.11.2"
+version = "0.11.3"
 requires-python = ">=3.14"
 description = "A local-first PoC: JMA weather charts → SmolVLM2 → Salesforce"
 # tested on 2026-07-08
@@ -71,6 +71,9 @@ where = ["src"]
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+target-version = ["py314"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]        # points at the src/ layout so tests import the real package
